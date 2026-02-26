@@ -1,11 +1,16 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using CryptoEdu.UI.UserControls;
 using MaterialSkin;
 using MaterialSkin.Controls;
 
 namespace CryptoEdu.UI.Forms
 {
+    /// <summary>
+    /// The main application shell. Hosts a MaterialTabSelector and all panel UserControls.
+    /// Uses MaterialSkin for a modern, professional look.
+    /// </summary>
     public partial class MainForm : MaterialForm
     {
         private readonly MaterialSkinManager _materialSkinManager;
@@ -14,15 +19,16 @@ namespace CryptoEdu.UI.Forms
         {
             InitializeComponent();
 
-            // Initialize MaterialSkinManager
             _materialSkinManager = MaterialSkinManager.Instance;
             _materialSkinManager.AddFormToManage(this);
             _materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
-            
-            // Apply professional Purple/Indigo theme to match "aesthetic" requirements
+
+            // Professional deep purple & indigo color scheme
             _materialSkinManager.ColorScheme = new ColorScheme(
-                Primary.DeepPurple600, Primary.DeepPurple700,
-                Primary.DeepPurple200, Accent.LightBlue200,
+                Primary.DeepPurple600,
+                Primary.DeepPurple700,
+                Primary.DeepPurple200,
+                Accent.LightBlue200,
                 TextShade.WHITE
             );
 
@@ -31,55 +37,52 @@ namespace CryptoEdu.UI.Forms
 
         private void InitializeComponent()
         {
-            this.Text = "CryptoEdu - Educational Cryptography Suite";
-            this.Size = new Size(1200, 800);
+            this.Text = "CryptoEdu — Educational Cryptography Suite";
+            this.Size = new Size(1200, 850);
+            this.MinimumSize = new Size(1100, 750);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Sizable = true;
         }
 
         private void SetupTabs()
         {
-            // Main TabControl driven by MaterialSkin
-            MaterialTabControl tabControl = new MaterialTabControl
+            var tabControl = new MaterialTabControl
             {
                 Dock = DockStyle.Fill,
                 Depth = 0,
                 MouseState = MouseState.HOVER
             };
 
-            // Classic Ciphers Tab
-            TabPage tabClassical = new TabPage("Classical Ciphers");
-            tabClassical.BackColor = Color.White;
-            tabClassical.Controls.Add(new Label { Text = "Classical Ciphers Panel Placeholder", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter });
-            
-            // Modern Ciphers Tab
-            TabPage tabModern = new TabPage("Modern Ciphers");
-            tabModern.BackColor = Color.White;
-            tabModern.Controls.Add(new Label { Text = "Modern Ciphers Panel Placeholder", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter });
+            // Tab 1: Classical Ciphers
+            var tabClassical = new TabPage("Classical Ciphers") { BackColor = Color.White };
+            tabClassical.Controls.Add(new ClassicalCipherPanel { Dock = DockStyle.Fill });
 
-            // File Encryption Tab
-            TabPage tabFile = new TabPage("File Encryption");
-            tabFile.BackColor = Color.White;
-            tabFile.Controls.Add(new Label { Text = "File Encryption Panel Placeholder", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter });
+            // Tab 2: Modern Encryption
+            var tabModern = new TabPage("Modern Encryption") { BackColor = Color.White };
+            tabModern.Controls.Add(new ModernCipherPanel { Dock = DockStyle.Fill });
 
-            // Hashing Tab
-            TabPage tabHash = new TabPage("Hashing");
-            tabHash.BackColor = Color.White;
-            tabHash.Controls.Add(new Label { Text = "Hashing Panel Placeholder", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter });
+            // Tab 3: File Encryption
+            var tabFile = new TabPage("File Encryption") { BackColor = Color.White };
+            tabFile.Controls.Add(new FileEncryptionPanel { Dock = DockStyle.Fill });
 
-            // History Tab
-            TabPage tabHistory = new TabPage("History");
-            tabHistory.BackColor = Color.White;
-            tabHistory.Controls.Add(new Label { Text = "History Panel Placeholder", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter });
+            // Tab 4: Hashing
+            var tabHash = new TabPage("Hashing") { BackColor = Color.White };
+            tabHash.Controls.Add(new HashingPanel { Dock = DockStyle.Fill });
 
-            tabControl.TabPages.Add(tabClassical);
-            tabControl.TabPages.Add(tabModern);
-            tabControl.TabPages.Add(tabFile);
-            tabControl.TabPages.Add(tabHash);
-            tabControl.TabPages.Add(tabHistory);
+            // Tab 5: Key Generator
+            var tabKeys = new TabPage("Key Generator") { BackColor = Color.White };
+            tabKeys.Controls.Add(new KeyGeneratorPanel { Dock = DockStyle.Fill });
 
-            // A MaterialTabSelector to display the tabs natively in the form header
-            MaterialTabSelector tabSelector = new MaterialTabSelector
+            // Tab 6: History
+            var tabHistory = new TabPage("History") { BackColor = Color.White };
+            tabHistory.Controls.Add(new HistoryPanel { Dock = DockStyle.Fill });
+
+            tabControl.TabPages.AddRange(new TabPage[] {
+                tabClassical, tabModern, tabFile, tabHash, tabKeys, tabHistory
+            });
+
+            // MaterialTabSelector renders the tabs inside the MaterialForm header
+            var tabSelector = new MaterialTabSelector
             {
                 BaseTabControl = tabControl,
                 Dock = DockStyle.Top,
