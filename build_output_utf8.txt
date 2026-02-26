@@ -1,0 +1,21 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(47,30): error CS0266: Cannot implicitly convert type 'System.Windows.Forms.RichTextBoxScrollBars' to 'System.Windows.Forms.ScrollBars'. An explicit conversion exists (are you missing a cast?) [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(74,30): error CS0266: Cannot implicitly convert type 'System.Windows.Forms.RichTextBoxScrollBars' to 'System.Windows.Forms.ScrollBars'. An explicit conversion exists (are you missing a cast?) [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\Core\Modern\DesCipher.cs(91,36): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\Core\Modern\AesCipher.cs(95,36): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(128,43): error CS1503: Argument 1: cannot convert from 'object' to 'string?' [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(131,35): error CS1503: Argument 1: cannot convert from 'object' to 'string?' [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+
+Build FAILED.
+
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\Core\Modern\DesCipher.cs(91,36): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\Core\Modern\AesCipher.cs(95,36): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(47,30): error CS0266: Cannot implicitly convert type 'System.Windows.Forms.RichTextBoxScrollBars' to 'System.Windows.Forms.ScrollBars'. An explicit conversion exists (are you missing a cast?) [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(74,30): error CS0266: Cannot implicitly convert type 'System.Windows.Forms.RichTextBoxScrollBars' to 'System.Windows.Forms.ScrollBars'. An explicit conversion exists (are you missing a cast?) [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(128,43): error CS1503: Argument 1: cannot convert from 'object' to 'string?' [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\UI\UserControls\CipherDetailControl.cs(131,35): error CS1503: Argument 1: cannot convert from 'object' to 'string?' [D:\TemplateStoreManager\Algorithms\CryptographyApp\CryptoEdu\CryptoEdu.csproj]
+    2 Warning(s)
+    4 Error(s)
+
+Time Elapsed 00:00:01.75
