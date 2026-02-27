@@ -7,6 +7,9 @@ using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
+    /// <summary>
+    /// File Encryption panel — TableLayoutPanel, no absolute coords.
+    /// </summary>
     public class FileEncryptionPanel : UserControl
     {
         private string? _filePath;
@@ -20,102 +23,148 @@ namespace CryptoEdu.UI.UserControls
 
         private void BuildUI()
         {
-            var card = new RoundedPanel { Dock = DockStyle.Fill };
+            var card = new RoundedPanel { Dock = DockStyle.Fill, Padding = new Padding(20) };
 
-            // Header
-            var lbl = new Label { Text = "File Encryption", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
-            var sub = new Label { Text = "AES-256 stream cipher · Works on any file type · RAM-safe for large files", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 40) };
-
-            // File picker
-            var lblFile = new Label { Text = "Source File", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 80) };
-            var txtFile = new TextBox { Bounds = new Rectangle(16, 104, 600, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle, BackColor = Color.FromArgb(248, 249, 255), ReadOnly = true };
-            var btnBrowse = MakePill("Browse…", Color.FromArgb(238, 239, 255), new Point(626, 104), AppTheme.Accent);
-            btnBrowse.Click += (s, e) => {
-                using var d = new OpenFileDialog { Filter = "All Files (*.*)|*.*", Title = "Select file to encrypt / decrypt" };
-                if (d.ShowDialog() == DialogResult.OK) { _filePath = d.FileName; txtFile.Text = _filePath; }
-            };
-
-            // Password
-            var lblPw = new Label { Text = "Password", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 152) };
-            var txtPw = new TextBox { Bounds = new Rectangle(16, 176, 380, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle, BackColor = Color.FromArgb(248, 249, 255), UseSystemPasswordChar = true };
-            var btnShow = MakePill("Show", Color.FromArgb(238, 239, 255), new Point(404, 176), AppTheme.TextSecondary);
-            var btnGenPw = MakePill("⟳ Generate", AppTheme.AccentInfo, new Point(btnShow.Right + 8, 176));
-            bool vis = false;
-            btnShow.Click += (s, e) => { vis = !vis; txtPw.UseSystemPasswordChar = !vis; btnShow.Text = vis ? "Hide" : "Show"; };
-            btnGenPw.Click += (s, e) => txtPw.Text = KeyGeneratorService.GenerateSecurePassword(20);
-
-            // Action buttons
-            var btnEnc = MakePill("🔒  Encrypt File", AppTheme.Accent, new Point(16, 228));
-            var btnDec = MakePill("🔓  Decrypt File", AppTheme.AccentSuccess, new Point(btnEnc.Right + 8, 228));
-
-            // Status / progress
-            var lblStat = new Label { Text = "Ready.", Font = AppTheme.FontBody, ForeColor = AppTheme.TextMuted, AutoSize = true, Location = new Point(16, 280) };
-            var progress = new ProgressBar { Bounds = new Rectangle(16, 306, 750, 12), Style = ProgressBarStyle.Continuous, Minimum = 0, Maximum = 100 };
-            var lblPct = new Label { Text = "", Font = AppTheme.FontSmall, ForeColor = AppTheme.TextMuted, AutoSize = true, Location = new Point(16, 322) };
-
-            // Info card
-            var infoCard = new RoundedPanel
+            var tbl = new TableLayoutPanel
             {
-                Bounds = new Rectangle(16, 360, 750, 90),
-                BackColor = Color.FromArgb(240, 244, 255),
-                ShowShadow = false,
-                Padding = new Padding(14)
+                Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 9,
+                BackColor = Color.Transparent, Padding = Padding.Empty
             };
-            infoCard.Controls.Add(new Label
+            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // Title
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // Subtitle
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // File label
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 52)); // File picker row
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // Password label
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 52)); // Password row
+            tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 56)); // Action buttons
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // Progress + status
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Info card
+
+            // ── Title ────────────────────────────────────────────────
+            var lblTitle = new Label { Text = "File Encryption", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, BackColor = Color.Transparent };
+            var lblSub   = new Label { Text = "AES-256 stream cipher  •  Any file type  •  RAM-safe for large files", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, BackColor = Color.Transparent, Margin = new Padding(0, 0, 0, 8) };
+
+            // ── File picker row ──────────────────────────────────────
+            var txtFile = ControlFactory.SingleLineInput(readOnly: true);
+            var btnBrowse = ControlFactory.Pill("Browse…", Color.FromArgb(238, 239, 255), AppTheme.Accent, 100);
+            var fileRow = MakeInputRow(txtFile, btnBrowse, 6);
+
+            // ── Password row ─────────────────────────────────────────
+            var txtPw = ControlFactory.SingleLineInput();
+            txtPw.UseSystemPasswordChar = true;
+            var btnShow = ControlFactory.Pill("Show", Color.FromArgb(238, 239, 255), AppTheme.TextSecondary, 70);
+            var btnGenPw = ControlFactory.Pill("⟳ Generate", AppTheme.AccentInfo, null, 110);
+            var pwFlow = new FlowLayoutPanel { Dock = DockStyle.None, AutoSize = true, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, BackColor = Color.Transparent };
+            pwFlow.Controls.AddRange(new Control[] { btnShow, btnGenPw });
+            var pwRow = MakeInputRow(txtPw, pwFlow, 6);
+
+            // ── Action buttons ───────────────────────────────────────
+            var btnEnc  = ControlFactory.Pill("🔒  Encrypt File", AppTheme.Accent, null, 160);
+            var btnDec  = ControlFactory.Pill("🔓  Decrypt File", AppTheme.AccentSuccess, null, 160);
+            var lblStat = ControlFactory.StatusLabel();
+            var btnFlow = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(0, 8, 0, 0)
+            };
+            btnFlow.Controls.AddRange(new Control[] { btnEnc, btnDec, lblStat });
+
+            // ── Progress ─────────────────────────────────────────────
+            var progress = new ProgressBar { Dock = DockStyle.Top, Height = 8, Minimum = 0, Maximum = 100, Style = ProgressBarStyle.Continuous };
+            var progWrap = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(0, 4, 0, 0) };
+            progWrap.Controls.Add(progress);
+
+            // ── Info card ────────────────────────────────────────────
+            var infoPanel = new Panel
+            {
+                Dock = DockStyle.Fill, BackColor = Color.FromArgb(240, 244, 255),
+                Padding = new Padding(14, 12, 14, 12)
+            };
+            infoPanel.Controls.Add(new Label
             {
                 Text = "ℹ️  How it works:\n" +
-                       "• Encryption appends .enc and stores IV in file header\n" +
-                       "• Decryption reads IV, derives key from password via SHA-256, then decrypts the stream chunk-by-chunk",
-                Font = AppTheme.FontBody,
-                ForeColor = AppTheme.TextSecondary,
-                Dock = DockStyle.Fill,
-                BackColor = Color.Transparent
+                       "•  A random 128-bit IV is generated and prepended to the output file\n" +
+                       "•  Your password is derived to a 32-byte AES-256 key via SHA-256\n" +
+                       "•  Data is processed in 64 KB chunks — safe for multi-GB files",
+                Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, Dock = DockStyle.Fill, BackColor = Color.Transparent
             });
 
-            // Handlers
+            // ── Assemble ─────────────────────────────────────────────
+            tbl.Controls.Add(lblTitle,  0, 0);
+            tbl.Controls.Add(lblSub,    0, 1);
+            tbl.Controls.Add(ControlFactory.SectionLabel("📂  Source File"), 0, 2);
+            tbl.Controls.Add(fileRow,   0, 3);
+            tbl.Controls.Add(ControlFactory.SectionLabel("🔑  Password"), 0, 4);
+            tbl.Controls.Add(pwRow,     0, 5);
+            tbl.Controls.Add(btnFlow,   0, 6);
+            tbl.Controls.Add(progWrap,  0, 7);
+            tbl.Controls.Add(infoPanel, 0, 8);
+
+            // ── Events ───────────────────────────────────────────────
+            bool vis = false;
+            btnBrowse.Click += (s, e) =>
+            {
+                using var d = new OpenFileDialog { Filter = "All Files (*.*)|*.*" };
+                if (d.ShowDialog() == DialogResult.OK) { _filePath = d.FileName; txtFile.Text = _filePath; }
+            };
+            btnShow.Click  += (s, e) => { vis = !vis; txtPw.UseSystemPasswordChar = !vis; btnShow.Text = vis ? "Hide" : "Show"; };
+            btnGenPw.Click += (s, e) => txtPw.Text = KeyGeneratorService.GenerateSecurePassword(20);
+
             btnEnc.Click += async (s, e) =>
             {
-                if (!Validate(txtFile.Text, txtPw.Text)) return;
-                using var sd = new SaveFileDialog { FileName = _filePath + ".enc", Filter = "Encrypted File (*.enc)|*.enc|All Files|*.*" };
+                if (!Validate(_filePath, txtPw.Text)) return;
+                using var sd = new SaveFileDialog { FileName = _filePath + ".enc", Filter = "Encrypted (*.enc)|*.enc|All Files|*.*" };
                 if (sd.ShowDialog() != DialogResult.OK) return;
-                btnEnc.Enabled = btnDec.Enabled = false;
-                var prog = new Progress<int>(v => { progress.Value = v; lblPct.Text = $"{v}%"; });
+                SetBusy(btnEnc, btnDec, true);
                 lblStat.Text = "Encrypting…"; lblStat.ForeColor = AppTheme.AccentInfo;
-                try { await FileEncryptionService.EncryptFileAsync(_filePath!, sd.FileName, txtPw.Text, prog); lblStat.Text = "Encryption complete ✓"; lblStat.ForeColor = AppTheme.AccentSuccess; HistoryService.LogOperation("Encrypt", "File", System.IO.Path.GetFileName(_filePath)); }
+                var prog = new Progress<int>(v => progress.Value = v);
+                try { await FileEncryptionService.EncryptFileAsync(_filePath!, sd.FileName, txtPw.Text, prog); lblStat.Text = "Done ✓"; lblStat.ForeColor = AppTheme.AccentSuccess; HistoryService.LogOperation("Encrypt", "File", System.IO.Path.GetFileName(_filePath)); }
                 catch (Exception ex) { lblStat.Text = ex.Message; lblStat.ForeColor = AppTheme.AccentDanger; }
-                finally { btnEnc.Enabled = btnDec.Enabled = true; }
+                finally { SetBusy(btnEnc, btnDec, false); }
             };
 
             btnDec.Click += async (s, e) =>
             {
-                if (!Validate(txtFile.Text, txtPw.Text)) return;
+                if (!Validate(_filePath, txtPw.Text)) return;
                 using var sd = new SaveFileDialog { FileName = _filePath!.Replace(".enc", ""), Filter = "All Files (*.*)|*.*" };
                 if (sd.ShowDialog() != DialogResult.OK) return;
-                btnEnc.Enabled = btnDec.Enabled = false;
-                var prog = new Progress<int>(v => { progress.Value = v; lblPct.Text = $"{v}%"; });
+                SetBusy(btnEnc, btnDec, true);
                 lblStat.Text = "Decrypting…"; lblStat.ForeColor = AppTheme.AccentInfo;
-                try { await FileEncryptionService.DecryptFileAsync(_filePath!, sd.FileName, txtPw.Text, prog); lblStat.Text = "Decryption complete ✓"; lblStat.ForeColor = AppTheme.AccentSuccess; HistoryService.LogOperation("Decrypt", "File", System.IO.Path.GetFileName(_filePath)); }
+                var prog = new Progress<int>(v => progress.Value = v);
+                try { await FileEncryptionService.DecryptFileAsync(_filePath!, sd.FileName, txtPw.Text, prog); lblStat.Text = "Done ✓"; lblStat.ForeColor = AppTheme.AccentSuccess; HistoryService.LogOperation("Decrypt", "File", System.IO.Path.GetFileName(_filePath)); }
                 catch (Exception ex) { lblStat.Text = ex.Message; lblStat.ForeColor = AppTheme.AccentDanger; }
-                finally { btnEnc.Enabled = btnDec.Enabled = true; }
+                finally { SetBusy(btnEnc, btnDec, false); }
             };
 
-            card.Controls.AddRange(new Control[] { lbl, sub, lblFile, txtFile, btnBrowse, lblPw, txtPw, btnShow, btnGenPw, btnEnc, btnDec, lblStat, progress, lblPct, infoCard });
+            card.Controls.Add(tbl);
             Controls.Add(card);
         }
 
-        private static bool Validate(string file, string pw)
+        // ── Helpers ───────────────────────────────────────────────
+        private static Panel MakeInputRow(Control main, Control extra, int pad = 6)
         {
-            if (string.IsNullOrWhiteSpace(file)) { MessageBox.Show("Please select a file first."); return false; }
-            if (string.IsNullOrWhiteSpace(pw))   { MessageBox.Show("Please enter a password.");   return false; }
+            var row = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
+                BackColor = Color.FromArgb(248, 249, 253), Padding = new Padding(pad), Margin = new Padding(0, 0, 0, 4)
+            };
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            row.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            main.Dock = DockStyle.Fill;
+            extra.Dock = DockStyle.Fill;
+            row.Controls.Add(main,  0, 0);
+            row.Controls.Add(extra, 1, 0);
+            return row;
+        }
+
+        private static bool Validate(string? f, string p)
+        {
+            if (string.IsNullOrWhiteSpace(f)) { MessageBox.Show("Select a file first.", "Validation"); return false; }
+            if (string.IsNullOrWhiteSpace(p)) { MessageBox.Show("Enter a password.",    "Validation"); return false; }
             return true;
         }
 
-        private static Button MakePill(string text, Color bg, Point loc, Color? fg = null)
-        {
-            var b = new Button { Text = text, Location = loc, AutoSize = true, FlatStyle = FlatStyle.Flat, BackColor = bg, ForeColor = fg ?? Color.White, Font = AppTheme.FontBodyBold, Cursor = Cursors.Hand, Height = 34, Padding = new Padding(12, 0, 12, 0) };
-            b.FlatAppearance.BorderSize = 0;
-            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.1f);
-            return b;
-        }
+        private static void SetBusy(Button a, Button b, bool busy) { a.Enabled = !busy; b.Enabled = !busy; }
     }
 }

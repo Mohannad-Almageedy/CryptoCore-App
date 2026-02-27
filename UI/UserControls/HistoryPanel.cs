@@ -20,49 +20,70 @@ namespace CryptoEdu.UI.UserControls
 
         private void BuildUI()
         {
-            var card = new RoundedPanel { Dock = DockStyle.Fill };
+            var card = new RoundedPanel { Dock = DockStyle.Fill, Padding = new Padding(20) };
 
-            // Header row
-            var lbl = new Label { Text = "Operation History", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
-            var sub = new Label { Text = "Session log of all cryptographic operations performed", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 40) };
+            var tbl = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3,
+                BackColor = Color.Transparent, Padding = Padding.Empty
+            };
+            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // header row
+            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // subtitle
+            tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // grid
 
-            var btnRefresh = MakePill("↻  Refresh", Color.FromArgb(238, 239, 255), new Point(580, 12), AppTheme.Accent);
-            var btnClear   = MakePill("✕  Clear",   Color.FromArgb(255, 238, 238), new Point(700, 12), AppTheme.AccentDanger);
+            // Header row: title + buttons
+            var hdrRow = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1,
+                BackColor = Color.Transparent, AutoSize = true
+            };
+            hdrRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            hdrRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            hdrRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            hdrRow.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            hdrRow.Controls.Add(new Label { Text = "Operation History", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, BackColor = Color.Transparent }, 0, 0);
+            var btnRefresh = ControlFactory.Pill("↻  Refresh", Color.FromArgb(238, 239, 255), AppTheme.Accent, 110);
+            var btnClear   = ControlFactory.Pill("✕  Clear",   Color.FromArgb(255, 238, 238), AppTheme.AccentDanger, 90);
+            hdrRow.Controls.Add(btnRefresh, 1, 0);
+            hdrRow.Controls.Add(btnClear,   2, 0);
+
+            var lblSub = new Label { Text = "Session log of all cryptographic operations", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, BackColor = Color.Transparent, Margin = new Padding(0, 0, 0, 10) };
 
             // Grid
             _grid = new DataGridView
             {
-                Bounds          = new Rectangle(16, 70, card.Width - 32, card.Height - 90),
-                Anchor          = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ReadOnly        = true,
-                AllowUserToAddRows    = false,
-                AllowUserToDeleteRows = false,
-                BackgroundColor = Color.White,
-                BorderStyle     = BorderStyle.None,
-                RowHeadersVisible = false,
-                SelectionMode   = DataGridViewSelectionMode.FullRowSelect,
-                AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(248, 249, 255) },
-                Font = AppTheme.FontBody,
-                GridColor = Color.FromArgb(230, 232, 245)
+                Dock                    = DockStyle.Fill,
+                AutoSizeColumnsMode      = DataGridViewAutoSizeColumnsMode.Fill,
+                ReadOnly                = true,
+                AllowUserToAddRows      = false,
+                AllowUserToDeleteRows   = false,
+                BackgroundColor         = Color.White,
+                BorderStyle             = BorderStyle.None,
+                RowHeadersVisible       = false,
+                SelectionMode           = DataGridViewSelectionMode.FullRowSelect,
+                Font                    = AppTheme.FontBody,
+                GridColor               = Color.FromArgb(230, 232, 245),
+                RowTemplate             = { Height = 34 },
+                AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(248, 249, 255) }
             };
-
             _grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                BackColor = AppTheme.Accent,
-                ForeColor = Color.White,
-                Font      = AppTheme.FontBodyBold,
-                Padding   = new Padding(6, 0, 6, 0)
+                BackColor = AppTheme.Accent, ForeColor = Color.White, Font = AppTheme.FontBodyBold,
+                Padding = new Padding(8, 0, 0, 0)
             };
             _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
             _grid.ColumnHeadersHeight = 38;
-
-            _grid.Columns.Add("Timestamp", "Timestamp");
+            _grid.Columns.Add("Time",      "Time");
             _grid.Columns.Add("Operation", "Operation");
             _grid.Columns.Add("Algorithm", "Algorithm");
             _grid.Columns.Add("Details",   "Details");
+            _grid.Columns["Time"].FillWeight      = 18;
+            _grid.Columns["Operation"].FillWeight = 18;
+            _grid.Columns["Algorithm"].FillWeight = 20;
+            _grid.Columns["Details"].FillWeight   = 44;
 
-            // Tag each row with a colour indicator in the Operation cell
             _grid.CellFormatting += (s, e) =>
             {
                 if (e.ColumnIndex == 1 && e.Value != null)
@@ -71,7 +92,7 @@ namespace CryptoEdu.UI.UserControls
                     {
                         "Encrypt" => AppTheme.Accent,
                         "Decrypt" => AppTheme.AccentSuccess,
-                        "Hash"    => Color.FromArgb(250, 144, 30),
+                        "Hash"    => Color.FromArgb(251, 140, 0),
                         "KeyGen"  => AppTheme.AccentInfo,
                         _         => AppTheme.TextPrimary
                     };
@@ -79,28 +100,23 @@ namespace CryptoEdu.UI.UserControls
                 }
             };
 
-            btnRefresh.Click += (s, e) => Refresh();
-            btnClear.Click   += (s, e) => { HistoryService.ClearHistory(); Refresh(); };
+            btnRefresh.Click += (s, e) => Reload();
+            btnClear.Click   += (s, e) => { HistoryService.ClearHistory(); Reload(); };
 
-            card.Controls.AddRange(new Control[] { lbl, sub, btnRefresh, btnClear, _grid });
+            tbl.Controls.Add(hdrRow, 0, 0);
+            tbl.Controls.Add(lblSub, 0, 1);
+            tbl.Controls.Add(_grid,  0, 2);
+
+            card.Controls.Add(tbl);
             Controls.Add(card);
-
-            Refresh();
+            Reload();
         }
 
-        public new void Refresh()
+        public void Reload()
         {
             _grid.Rows.Clear();
             foreach (var e in HistoryService.GetHistory())
                 _grid.Rows.Add(e.Timestamp.ToString("HH:mm:ss"), e.OperationType, e.Title, e.Description);
-        }
-
-        private static Button MakePill(string text, Color bg, Point loc, Color? fg = null)
-        {
-            var b = new Button { Text = text, Location = loc, AutoSize = true, FlatStyle = FlatStyle.Flat, BackColor = bg, ForeColor = fg ?? Color.White, Font = AppTheme.FontBodyBold, Cursor = Cursors.Hand, Height = 34, Padding = new Padding(12, 0, 12, 0) };
-            b.FlatAppearance.BorderSize = 0;
-            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.1f);
-            return b;
         }
     }
 }
