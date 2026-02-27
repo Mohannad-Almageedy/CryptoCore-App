@@ -43,7 +43,7 @@ namespace CryptoEdu.UI.Controls
             {
                 Text      = title.ToUpperInvariant(),
                 Font      = AppTheme.FontBadge,
-                ForeColor = Color.FromArgb(80, 170, 175, 200),
+                ForeColor = AppTheme.TextMuted,
                 AutoSize  = false,
                 Width     = AppTheme.SidebarWidth,
                 Height    = 32,
@@ -173,7 +173,7 @@ namespace CryptoEdu.UI.Controls
             }
 
             // Activate
-            panel.BackColor     = Color.FromArgb(20, 99, 102, 241);
+            panel.BackColor     = AppTheme.SidebarHover;
             indicator.Visible   = true;
             lbl.ForeColor       = Color.White;
             lbl.Font            = AppTheme.FontSidebarSel;

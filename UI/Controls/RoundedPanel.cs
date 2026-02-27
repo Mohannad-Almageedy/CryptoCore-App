@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -5,66 +6,47 @@ using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.Controls
 {
-    /// <summary>
-    /// A Panel with rounded corners and an optional shadow / border.
-    /// Drop it anywhere as a card container.
-    /// </summary>
     public class RoundedPanel : Panel
     {
-        private int   _radius      = AppTheme.CornerRadius;
-        private bool  _showBorder  = true;
-        private bool  _showShadow  = true;
-        private Color _borderColor = AppTheme.CardBorder;
-
-        public int   Radius      { get => _radius;      set { _radius      = value; Invalidate(); } }
-        public bool  ShowBorder  { get => _showBorder;  set { _showBorder  = value; Invalidate(); } }
-        public bool  ShowShadow  { get => _showShadow;  set { _showShadow  = value; Invalidate(); } }
-        public Color BorderColor { get => _borderColor; set { _borderColor = value; Invalidate(); } }
+        public bool ShowShadow { get; set; } = true;
 
         public RoundedPanel()
         {
             DoubleBuffered = true;
             BackColor = AppTheme.CardBg;
-            Padding = new Padding(AppTheme.CardPadding);
+            Padding = new Padding(20);
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            e.Graphics.Clear(Parent.BackColor); // paint transparently over parent
 
-            var rect  = new Rectangle(2, 2, Width - 5, Height - 5);
-            using var path = RoundedRect(rect, _radius);
+            int r = AppTheme.CornerRadius;
+            var w = Width - 1;
+            var h = Height - 1;
 
-            if (_showShadow)
-            {
-                using var shadowPen = new Pen(Color.FromArgb(18, 0, 0, 0), 4);
-                var shadowRect = new Rectangle(3, 4, Width - 6, Height - 6);
-                using var shadowPath = RoundedRect(shadowRect, _radius);
-                e.Graphics.DrawPath(shadowPen, shadowPath);
-            }
-
-            using (var brush = new SolidBrush(BackColor))
-                e.Graphics.FillPath(brush, path);
-
-            if (_showBorder)
-            {
-                using var pen = new Pen(_borderColor, 1);
-                e.Graphics.DrawPath(pen, path);
-            }
-
-            base.OnPaint(e);
-        }
-
-        private static GraphicsPath RoundedRect(Rectangle bounds, int radius)
-        {
-            int d = radius * 2;
-            var path = new GraphicsPath();
-            path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
-            path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
-            path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0,   90);
-            path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
+            using var path = new GraphicsPath();
+            path.AddArc(0, 0, r, r, 180, 90);
+            path.AddArc(w - r, 0, r, r, 270, 90);
+            path.AddArc(w - r, h - r, r, r, 0, 90);
+            path.AddArc(0, h - r, r, r, 90, 90);
             path.CloseFigure();
-            return path;
+
+            // Draw shadow fake outline
+            if (ShowShadow)
+            {
+                using var pS = new Pen(Color.FromArgb(10, 0, 0, 0), 3);
+                e.Graphics.DrawPath(pS, path);
+            }
+
+            // Fill card
+            using var brush = new SolidBrush(BackColor);
+            e.Graphics.FillPath(brush, path);
+
+            // Border for dark mode (makes cards pop against contentbg)
+            using var pOutline = new Pen(AppTheme.CardBorder, 1);
+            e.Graphics.DrawPath(pOutline, path);
         }
     }
 }

@@ -100,15 +100,15 @@ namespace CryptoEdu.UI.Forms
             // Divider bottom
             sidebar.Controls.Add(MakeDivider());
 
-            // Version info
+            // Version info & Developer credit
             var verLabel = new Label
             {
-                Text      = "v1.0.0   •   .NET 8",
+                Text      = "Developed by Mohannad Al-Majidi\nv1.0.0  •  .NET 8",
                 Font      = AppTheme.FontSmall,
-                ForeColor = Color.FromArgb(70, 200, 200, 220),
+                ForeColor = AppTheme.TextMuted,
                 AutoSize  = false,
                 Width     = AppTheme.SidebarWidth,
-                Height    = 28,
+                Height    = 40,
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent,
                 Padding   = new Padding(0, 5, 0, 0)

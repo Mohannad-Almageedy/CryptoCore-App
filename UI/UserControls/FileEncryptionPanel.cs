@@ -7,9 +7,6 @@ using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
-    /// <summary>
-    /// File Encryption panel — TableLayoutPanel, no absolute coords.
-    /// </summary>
     public class FileEncryptionPanel : UserControl
     {
         private string? _filePath;
@@ -23,8 +20,7 @@ namespace CryptoEdu.UI.UserControls
 
         private void BuildUI()
         {
-            var card = new RoundedPanel { Dock = DockStyle.Fill, Padding = new Padding(20) };
-
+            var card = ControlFactory.Card();
             var tbl = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 9,
@@ -41,45 +37,29 @@ namespace CryptoEdu.UI.UserControls
             tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // Progress + status
             tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Info card
 
-            // ── Title ────────────────────────────────────────────────
-            var lblTitle = new Label { Text = "File Encryption", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, BackColor = Color.Transparent };
-            var lblSub   = new Label { Text = "AES-256 stream cipher  •  Any file type  •  RAM-safe for large files", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, BackColor = Color.Transparent, Margin = new Padding(0, 0, 0, 8) };
-
-            // ── File picker row ──────────────────────────────────────
             var txtFile = ControlFactory.SingleLineInput(readOnly: true);
-            var btnBrowse = ControlFactory.Pill("Browse…", Color.FromArgb(238, 239, 255), AppTheme.Accent, 100);
+            var btnBrowse = ControlFactory.Pill("Browse…", AppTheme.ButtonMutedBg, AppTheme.ButtonMutedFg, 100);
             var fileRow = MakeInputRow(txtFile, btnBrowse, 6);
 
-            // ── Password row ─────────────────────────────────────────
             var txtPw = ControlFactory.SingleLineInput();
             txtPw.UseSystemPasswordChar = true;
-            var btnShow = ControlFactory.Pill("Show", Color.FromArgb(238, 239, 255), AppTheme.TextSecondary, 70);
+            var btnShow = ControlFactory.Pill("Show", AppTheme.ButtonMutedBg, AppTheme.TextSecondary, 70);
             var btnGenPw = ControlFactory.Pill("⟳ Generate", AppTheme.AccentInfo, null, 110);
             var pwFlow = new FlowLayoutPanel { Dock = DockStyle.None, AutoSize = true, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, BackColor = Color.Transparent };
             pwFlow.Controls.AddRange(new Control[] { btnShow, btnGenPw });
             var pwRow = MakeInputRow(txtPw, pwFlow, 6);
 
-            // ── Action buttons ───────────────────────────────────────
             var btnEnc  = ControlFactory.Pill("🔒  Encrypt File", AppTheme.Accent, null, 160);
             var btnDec  = ControlFactory.Pill("🔓  Decrypt File", AppTheme.AccentSuccess, null, 160);
             var lblStat = ControlFactory.StatusLabel();
-            var btnFlow = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(0, 8, 0, 0)
-            };
+            var btnFlow = new FlowLayoutPanel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(0, 8, 0, 0) };
             btnFlow.Controls.AddRange(new Control[] { btnEnc, btnDec, lblStat });
 
-            // ── Progress ─────────────────────────────────────────────
             var progress = new ProgressBar { Dock = DockStyle.Top, Height = 8, Minimum = 0, Maximum = 100, Style = ProgressBarStyle.Continuous };
             var progWrap = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(0, 4, 0, 0) };
             progWrap.Controls.Add(progress);
 
-            // ── Info card ────────────────────────────────────────────
-            var infoPanel = new Panel
-            {
-                Dock = DockStyle.Fill, BackColor = Color.FromArgb(240, 244, 255),
-                Padding = new Padding(14, 12, 14, 12)
-            };
+            var infoPanel = new Panel { Dock = DockStyle.Fill, BackColor = AppTheme.InputWrapBg, Padding = new Padding(14, 12, 14, 12) };
             infoPanel.Controls.Add(new Label
             {
                 Text = "ℹ️  How it works:\n" +
@@ -89,9 +69,8 @@ namespace CryptoEdu.UI.UserControls
                 Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, Dock = DockStyle.Fill, BackColor = Color.Transparent
             });
 
-            // ── Assemble ─────────────────────────────────────────────
-            tbl.Controls.Add(lblTitle,  0, 0);
-            tbl.Controls.Add(lblSub,    0, 1);
+            tbl.Controls.Add(ControlFactory.PageTitle("File Encryption"), 0, 0);
+            tbl.Controls.Add(ControlFactory.SubTitle("AES-256 stream cipher  •  Any file type  •  RAM-safe for large files"), 0, 1);
             tbl.Controls.Add(ControlFactory.SectionLabel("📂  Source File"), 0, 2);
             tbl.Controls.Add(fileRow,   0, 3);
             tbl.Controls.Add(ControlFactory.SectionLabel("🔑  Password"), 0, 4);
@@ -100,13 +79,8 @@ namespace CryptoEdu.UI.UserControls
             tbl.Controls.Add(progWrap,  0, 7);
             tbl.Controls.Add(infoPanel, 0, 8);
 
-            // ── Events ───────────────────────────────────────────────
             bool vis = false;
-            btnBrowse.Click += (s, e) =>
-            {
-                using var d = new OpenFileDialog { Filter = "All Files (*.*)|*.*" };
-                if (d.ShowDialog() == DialogResult.OK) { _filePath = d.FileName; txtFile.Text = _filePath; }
-            };
+            btnBrowse.Click += (s, e) => { using var d = new OpenFileDialog { Filter = "All Files (*.*)|*.*" }; if (d.ShowDialog() == DialogResult.OK) { _filePath = d.FileName; txtFile.Text = _filePath; } };
             btnShow.Click  += (s, e) => { vis = !vis; txtPw.UseSystemPasswordChar = !vis; btnShow.Text = vis ? "Hide" : "Show"; };
             btnGenPw.Click += (s, e) => txtPw.Text = KeyGeneratorService.GenerateSecurePassword(20);
 
@@ -140,13 +114,12 @@ namespace CryptoEdu.UI.UserControls
             Controls.Add(card);
         }
 
-        // ── Helpers ───────────────────────────────────────────────
         private static Panel MakeInputRow(Control main, Control extra, int pad = 6)
         {
             var row = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
-                BackColor = Color.FromArgb(248, 249, 253), Padding = new Padding(pad), Margin = new Padding(0, 0, 0, 4)
+                BackColor = AppTheme.InputWrapBg, Padding = new Padding(pad), Margin = new Padding(0, 0, 0, 4)
             };
             row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));

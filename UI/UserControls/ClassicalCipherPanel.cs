@@ -2,17 +2,13 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using CryptoEdu.Core;
+using CryptoEdu.Services;
 using CryptoEdu.UI.Controls;
 using CryptoEdu.UI.Theme;
 using System.Linq;
 
 namespace CryptoEdu.UI.UserControls
 {
-    /// <summary>
-    /// Classical cipher host — chip tab bar on top, CipherDetailControl fills rest.
-    /// Layout: Top=chip bar (FlowLayoutPanel), Fill=content host panel
-    /// No absolute coords.
-    /// </summary>
     public class ClassicalCipherPanel : UserControl
     {
         public ClassicalCipherPanel()
@@ -26,7 +22,6 @@ namespace CryptoEdu.UI.UserControls
         {
             var ciphers = CipherRegistry.GetClassicalCiphers().ToList();
 
-            // Chip bar
             var chipBar = new FlowLayoutPanel
             {
                 Dock          = DockStyle.Top,
@@ -37,13 +32,7 @@ namespace CryptoEdu.UI.UserControls
                 Padding       = new Padding(8, 10, 8, 4)
             };
 
-            // Content host
-            var host = new Panel
-            {
-                Dock      = DockStyle.Fill,
-                BackColor = AppTheme.ContentBg
-            };
-
+            var host = new Panel { Dock = DockStyle.Fill, BackColor = AppTheme.ContentBg };
             Button? activeChip = null;
 
             for (int i = 0; i < ciphers.Count; i++)
@@ -59,20 +48,20 @@ namespace CryptoEdu.UI.UserControls
                     Height    = 32,
                     AutoSize  = true,
                     Padding   = new Padding(14, 0, 14, 0),
-                    BackColor = Color.FromArgb(236, 237, 252),
+                    BackColor = AppTheme.ChipBg,
                     ForeColor = AppTheme.TextSecondary,
                     Cursor    = Cursors.Hand,
                     Margin    = new Padding(0, 0, 6, 0),
                     Tag       = detail
                 };
                 chip.FlatAppearance.BorderSize = 0;
-                chip.FlatAppearance.MouseOverBackColor = Color.FromArgb(220, 221, 252);
+                chip.FlatAppearance.MouseOverBackColor = AppTheme.ChipHoverBg;
 
                 chip.Click += (s, e) =>
                 {
                     if (activeChip != null)
                     {
-                        activeChip.BackColor = Color.FromArgb(236, 237, 252);
+                        activeChip.BackColor = AppTheme.ChipBg;
                         activeChip.ForeColor = AppTheme.TextSecondary;
                     }
                     chip.BackColor = AppTheme.Accent;

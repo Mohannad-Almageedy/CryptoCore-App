@@ -20,7 +20,7 @@ namespace CryptoEdu.UI.UserControls
 
         private void BuildUI()
         {
-            var card = new RoundedPanel { Dock = DockStyle.Fill, Padding = new Padding(20) };
+            var card = ControlFactory.Card();
 
             var tbl = new TableLayoutPanel
             {
@@ -32,7 +32,6 @@ namespace CryptoEdu.UI.UserControls
             tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // subtitle
             tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // grid
 
-            // Header row: title + buttons
             var hdrRow = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1,
@@ -43,15 +42,12 @@ namespace CryptoEdu.UI.UserControls
             hdrRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             hdrRow.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-            hdrRow.Controls.Add(new Label { Text = "Operation History", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, BackColor = Color.Transparent }, 0, 0);
-            var btnRefresh = ControlFactory.Pill("↻  Refresh", Color.FromArgb(238, 239, 255), AppTheme.Accent, 110);
-            var btnClear   = ControlFactory.Pill("✕  Clear",   Color.FromArgb(255, 238, 238), AppTheme.AccentDanger, 90);
+            hdrRow.Controls.Add(ControlFactory.PageTitle("Operation History"), 0, 0);
+            var btnRefresh = ControlFactory.Pill("↻  Refresh", AppTheme.ButtonMutedBg, AppTheme.ButtonMutedFg, 110);
+            var btnClear   = ControlFactory.Pill("✕  Clear",   AppTheme.ButtonMutedBg, AppTheme.AccentDanger, 90);
             hdrRow.Controls.Add(btnRefresh, 1, 0);
             hdrRow.Controls.Add(btnClear,   2, 0);
 
-            var lblSub = new Label { Text = "Session log of all cryptographic operations", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, BackColor = Color.Transparent, Margin = new Padding(0, 0, 0, 10) };
-
-            // Grid
             _grid = new DataGridView
             {
                 Dock                    = DockStyle.Fill,
@@ -59,18 +55,19 @@ namespace CryptoEdu.UI.UserControls
                 ReadOnly                = true,
                 AllowUserToAddRows      = false,
                 AllowUserToDeleteRows   = false,
-                BackgroundColor         = Color.White,
+                BackgroundColor         = AppTheme.InputWrapBg,
                 BorderStyle             = BorderStyle.None,
                 RowHeadersVisible       = false,
                 SelectionMode           = DataGridViewSelectionMode.FullRowSelect,
                 Font                    = AppTheme.FontBody,
-                GridColor               = Color.FromArgb(230, 232, 245),
+                GridColor               = AppTheme.CardBorder,
+                DefaultCellStyle        = new DataGridViewCellStyle { BackColor = AppTheme.InputWrapBg, ForeColor = AppTheme.TextPrimary, SelectionBackColor = AppTheme.Accent, SelectionForeColor = Color.White },
                 RowTemplate             = { Height = 34 },
-                AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(248, 249, 255) }
+                AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = AppTheme.CardBg, ForeColor = AppTheme.TextPrimary }
             };
             _grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                BackColor = AppTheme.Accent, ForeColor = Color.White, Font = AppTheme.FontBodyBold,
+                BackColor = AppTheme.CardBorder, ForeColor = AppTheme.TextPrimary, Font = AppTheme.FontBodyBold,
                 Padding = new Padding(8, 0, 0, 0)
             };
             _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
@@ -92,7 +89,7 @@ namespace CryptoEdu.UI.UserControls
                     {
                         "Encrypt" => AppTheme.Accent,
                         "Decrypt" => AppTheme.AccentSuccess,
-                        "Hash"    => Color.FromArgb(251, 140, 0),
+                        "Hash"    => AppTheme.AccentWarning,
                         "KeyGen"  => AppTheme.AccentInfo,
                         _         => AppTheme.TextPrimary
                     };
@@ -104,7 +101,7 @@ namespace CryptoEdu.UI.UserControls
             btnClear.Click   += (s, e) => { HistoryService.ClearHistory(); Reload(); };
 
             tbl.Controls.Add(hdrRow, 0, 0);
-            tbl.Controls.Add(lblSub, 0, 1);
+            tbl.Controls.Add(ControlFactory.SubTitle("Session log of all cryptographic operations"), 0, 1);
             tbl.Controls.Add(_grid,  0, 2);
 
             card.Controls.Add(tbl);

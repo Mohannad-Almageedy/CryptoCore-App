@@ -6,10 +6,6 @@ using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.Controls
 {
-    /// <summary>
-    /// Factory helpers — create consistently styled controls.
-    /// Use these everywhere instead of inline styling.
-    /// </summary>
     public static class ControlFactory
     {
         // ── Section label ──────────────────────────────────────────
@@ -20,7 +16,7 @@ namespace CryptoEdu.UI.Controls
                 Font      = AppTheme.FontH3,
                 ForeColor = AppTheme.TextSecondary,
                 AutoSize  = true,
-                Margin    = new Padding(0, 0, 0, 4),
+                Margin    = new Padding(0, 0, 0, 6),
                 BackColor = Color.Transparent
             };
 
@@ -56,7 +52,7 @@ namespace CryptoEdu.UI.Controls
                 Dock        = DockStyle.Fill,
                 Font        = AppTheme.FontBody,
                 BorderStyle = BorderStyle.None,
-                BackColor   = Color.FromArgb(248, 249, 253),
+                BackColor   = AppTheme.InputBg,
                 ForeColor   = AppTheme.TextPrimary,
                 ScrollBars  = RichTextBoxScrollBars.Vertical
             };
@@ -69,7 +65,7 @@ namespace CryptoEdu.UI.Controls
                 Dock        = DockStyle.Fill,
                 Font        = AppTheme.FontBody,
                 BorderStyle = BorderStyle.None,
-                BackColor   = Color.FromArgb(248, 249, 253),
+                BackColor   = AppTheme.InputBg,
                 ForeColor   = AppTheme.TextPrimary,
                 ReadOnly    = readOnly
             };
@@ -80,10 +76,10 @@ namespace CryptoEdu.UI.Controls
             {
                 Height      = height,
                 Dock        = DockStyle.Fill,
-                Font        = new Font("Cascadia Code", 9, FontStyle.Regular),
+                Font        = AppTheme.FontMono,
                 BorderStyle = BorderStyle.None,
-                BackColor   = Color.FromArgb(240, 242, 253),
-                ForeColor   = Color.FromArgb(50, 55, 160),
+                BackColor   = AppTheme.OutputBg,
+                ForeColor   = AppTheme.OutputText,
                 ReadOnly    = true,
                 ScrollBars  = RichTextBoxScrollBars.Vertical
             };
@@ -93,9 +89,9 @@ namespace CryptoEdu.UI.Controls
             => new RichTextBox
             {
                 Dock        = DockStyle.Fill,
-                Font        = new Font("Cascadia Code", 8),
+                Font        = AppTheme.FontMonoSmall,
                 BorderStyle = BorderStyle.None,
-                BackColor   = Color.FromArgb(248, 249, 253),
+                BackColor   = AppTheme.InputBg,
                 ForeColor   = AppTheme.TextPrimary,
                 ReadOnly    = true,
                 ScrollBars  = RichTextBoxScrollBars.Vertical
@@ -119,7 +115,8 @@ namespace CryptoEdu.UI.Controls
                 Margin    = new Padding(0, 0, 8, 0)
             };
             b.FlatAppearance.BorderSize = 0;
-            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.12f);
+            // Slightly lighten or darken based on background brightness
+            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.15f);
             return b;
         }
 
@@ -131,7 +128,7 @@ namespace CryptoEdu.UI.Controls
                 Font      = AppTheme.FontSmall,
                 ForeColor = AppTheme.TextMuted,
                 AutoSize  = true,
-                Margin    = new Padding(4, 8, 0, 0),
+                Margin    = new Padding(4, 9, 0, 0),
                 BackColor = Color.Transparent
             };
 
@@ -140,10 +137,25 @@ namespace CryptoEdu.UI.Controls
         {
             var p = new Panel
             {
-                BackColor = Color.FromArgb(248, 249, 253),
+                BackColor = AppTheme.InputBg,
                 Padding   = new Padding(padding),
                 Dock      = DockStyle.Fill,
                 Height    = height > 0 ? height : inner.Height + padding * 2
+            };
+            inner.Dock = DockStyle.Fill;
+            p.Controls.Add(inner);
+            return p;
+        }
+
+        // ── Bordered layout box ───────────────────────────────────
+        public static Panel BorderBox(Control inner, Color? bg = null, int pad = 6)
+        {
+            var p = new Panel
+            {
+                BackColor = bg ?? AppTheme.InputBg,
+                Dock      = DockStyle.Fill,
+                Padding   = new Padding(pad),
+                Margin    = new Padding(0, 0, 0, 8)
             };
             inner.Dock = DockStyle.Fill;
             p.Controls.Add(inner);
@@ -171,6 +183,7 @@ namespace CryptoEdu.UI.Controls
             {
                 Dock        = DockStyle.Fill,
                 Padding     = new Padding(20),
+                BackColor   = AppTheme.CardBg,
                 ShowShadow  = true
             };
     }

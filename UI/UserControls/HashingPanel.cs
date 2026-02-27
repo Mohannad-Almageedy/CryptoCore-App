@@ -7,10 +7,6 @@ using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
-    /// <summary>
-    /// Hashing panel — TableLayoutPanel, no absolute coords.
-    /// Layout: title → sub → input → HMAC key row → button row → result → copy
-    /// </summary>
     public class HashingPanel : UserControl
     {
         public HashingPanel()
@@ -22,8 +18,7 @@ namespace CryptoEdu.UI.UserControls
 
         private void BuildUI()
         {
-            var card = new RoundedPanel { Dock = DockStyle.Fill, Padding = new Padding(20) };
-
+            var card = ControlFactory.Card();
             var tbl = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 9,
@@ -40,83 +35,57 @@ namespace CryptoEdu.UI.UserControls
             tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // "Result" label + status
             tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 55)); // result output
 
-            var lblTitle = new Label { Text = "Cryptographic Hash Functions", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, BackColor = Color.Transparent };
-            var lblSub   = new Label { Text = "One-way transformation  •  Cannot be reversed or decrypted", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, BackColor = Color.Transparent, Margin = new Padding(0, 0, 0, 8) };
-
             var txtIn  = ControlFactory.MultiLineInput();
             var txtOut = ControlFactory.MonoOutput();
             var txtKey = ControlFactory.SingleLineInput();
-
             var lblStat = ControlFactory.StatusLabel();
 
-            // HMAC key row
-            var hmacRow = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1,
-                BackColor = Color.Transparent, Padding = Padding.Empty
-            };
+            var hmacRow = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, BackColor = Color.Transparent, Padding = Padding.Empty };
             hmacRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             hmacRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             hmacRow.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             hmacRow.Controls.Add(new Label { Text = "HMAC Key:", Font = AppTheme.FontBodyBold, ForeColor = AppTheme.TextSecondary, AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, BackColor = Color.Transparent, Margin = new Padding(0, 0, 10, 0) }, 0, 0);
-            var keyWrap = new Panel { BackColor = Color.FromArgb(248, 249, 253), Padding = new Padding(6), Dock = DockStyle.Fill };
+            var keyWrap = new Panel { BackColor = AppTheme.InputWrapBg, Padding = new Padding(6), Dock = DockStyle.Fill };
             txtKey.Dock = DockStyle.Fill;
             keyWrap.Controls.Add(txtKey);
             hmacRow.Controls.Add(keyWrap, 1, 0);
 
-            // Algorithm button row (colour-coded)
-            var algoRow = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight,
-                BackColor = Color.Transparent, WrapContents = false, Padding = new Padding(0, 8, 0, 0)
-            };
-
-            var btnMD5    = ControlFactory.Pill("MD5",         Color.FromArgb(234,  67,  53));
-            var btnSHA1   = ControlFactory.Pill("SHA-1",       Color.FromArgb(251, 140,   0));
+            var algoRow = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, BackColor = Color.Transparent, WrapContents = false, Padding = new Padding(0, 8, 0, 0) };
+            var btnMD5    = ControlFactory.Pill("MD5",         Color.FromArgb(234, 67, 53));
+            var btnSHA1   = ControlFactory.Pill("SHA-1",       Color.FromArgb(251, 140, 0));
             var btnSHA256 = ControlFactory.Pill("SHA-256",     AppTheme.Accent);
-            var btnSHA512 = ControlFactory.Pill("SHA-512",     Color.FromArgb( 30, 136, 229));
-            var btnHMAC   = ControlFactory.Pill("HMAC-SHA256", Color.FromArgb(  0, 150, 136));
-            var btnCopy   = ControlFactory.Pill("⎘ Copy",      Color.FromArgb(238, 239, 255), AppTheme.Accent);
+            var btnSHA512 = ControlFactory.Pill("SHA-512",     AppTheme.AccentInfo);
+            var btnHMAC   = ControlFactory.Pill("HMAC-SHA256", AppTheme.AccentSuccess);
+            var btnCopy   = ControlFactory.Pill("⎘ Copy",      AppTheme.ButtonMutedBg, AppTheme.ButtonMutedFg);
             algoRow.Controls.AddRange(new Control[] { btnMD5, btnSHA1, btnSHA256, btnSHA512, btnHMAC, btnCopy });
 
-            // Result header row (label left, status right)
-            var resultHeader = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, BackColor = Color.Transparent, AutoSize = true, Padding = Padding.Empty
-            };
+            var resultHeader = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, BackColor = Color.Transparent, AutoSize = true, Padding = Padding.Empty };
             resultHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             resultHeader.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             resultHeader.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             resultHeader.Controls.Add(ControlFactory.SectionLabel("📋  Hash Result (Hex)"), 0, 0);
             resultHeader.Controls.Add(lblStat, 1, 0);
 
-            tbl.Controls.Add(lblTitle,   0, 0);
-            tbl.Controls.Add(lblSub,     0, 1);
+            tbl.Controls.Add(ControlFactory.PageTitle("Cryptographic Hash Functions"), 0, 0);
+            tbl.Controls.Add(ControlFactory.SubTitle("One-way transformation  •  Cannot be reversed or decrypted"), 0, 1);
             tbl.Controls.Add(ControlFactory.SectionLabel("✏️  Input Text"), 0, 2);
             tbl.Controls.Add(WrapBox(txtIn), 0, 3);
             tbl.Controls.Add(ControlFactory.SectionLabel("🔑  HMAC Secret Key  (only for HMAC-SHA256)"), 0, 4);
             tbl.Controls.Add(hmacRow, 0, 5);
-            tbl.Controls.Add(algoRow  , 0, 6);
+            tbl.Controls.Add(algoRow, 0, 6);
             tbl.Controls.Add(resultHeader, 0, 7);
-            tbl.Controls.Add(WrapBox(txtOut, Color.FromArgb(240, 242, 253)), 0, 8);
+            tbl.Controls.Add(WrapBox(txtOut, AppTheme.OutputBg), 0, 8);
 
-            // Wire algorithm buttons
             void Run(Func<string> fn, string name)
             {
-                try
-                {
-                    txtOut.Text = fn();
-                    lblStat.Text = name + " ✓";
-                    lblStat.ForeColor = AppTheme.AccentSuccess;
-                    HistoryService.LogOperation("Hash", name, "OK");
-                }
+                try { txtOut.Text = fn(); lblStat.Text = name + " ✓"; lblStat.ForeColor = AppTheme.AccentSuccess; HistoryService.LogOperation("Hash", name, "OK"); }
                 catch (Exception ex) { lblStat.Text = ex.Message; lblStat.ForeColor = AppTheme.AccentDanger; }
             }
 
-            btnMD5.Click    += (s, e) => Run(() => HashingService.ComputeMD5(txtIn.Text),           "MD5");
-            btnSHA1.Click   += (s, e) => Run(() => HashingService.ComputeSHA1(txtIn.Text),          "SHA-1");
-            btnSHA256.Click += (s, e) => Run(() => HashingService.ComputeSHA256(txtIn.Text),        "SHA-256");
-            btnSHA512.Click += (s, e) => Run(() => HashingService.ComputeSHA512(txtIn.Text),        "SHA-512");
+            btnMD5.Click    += (s, e) => Run(() => HashingService.ComputeMD5(txtIn.Text), "MD5");
+            btnSHA1.Click   += (s, e) => Run(() => HashingService.ComputeSHA1(txtIn.Text), "SHA-1");
+            btnSHA256.Click += (s, e) => Run(() => HashingService.ComputeSHA256(txtIn.Text), "SHA-256");
+            btnSHA512.Click += (s, e) => Run(() => HashingService.ComputeSHA512(txtIn.Text), "SHA-512");
             btnHMAC.Click   += (s, e) => Run(() => HashingService.ComputeHMACSHA256(txtIn.Text, txtKey.Text), "HMAC-SHA256");
             btnCopy.Click   += (s, e) => ClipboardService.CopyToClipboard(txtOut.Text);
 
@@ -126,7 +95,7 @@ namespace CryptoEdu.UI.UserControls
 
         private static Panel WrapBox(Control inner, Color? bg = null)
         {
-            var p = new Panel { BackColor = bg ?? Color.FromArgb(248, 249, 253), Dock = DockStyle.Fill, Padding = new Padding(6), Margin = new Padding(0, 0, 0, 6) };
+            var p = new Panel { BackColor = bg ?? AppTheme.InputWrapBg, Dock = DockStyle.Fill, Padding = new Padding(6), Margin = new Padding(0, 0, 0, 6) };
             inner.Dock = DockStyle.Fill;
             p.Controls.Add(inner);
             return p;

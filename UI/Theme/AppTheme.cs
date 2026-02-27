@@ -3,32 +3,49 @@ using System.Drawing;
 namespace CryptoEdu.UI.Theme
 {
     /// <summary>
-    /// Centralised design token repository.
-    /// All colours, fonts and sizes are defined here — never inline.
+    /// Premium Dark Mode design tokens.
+    /// Uses a Slate-inspired palette with vibrant accents.
     /// </summary>
     public static class AppTheme
     {
-        // ─── Core palette ──────────────────────────────────────────────────────
-        public static readonly Color Sidebar        = Color.FromArgb(15, 17, 26);
-        public static readonly Color SidebarHover   = Color.FromArgb(30, 33, 50);
-        public static readonly Color SidebarActive  = Color.FromArgb(99, 102, 241);   // Indigo-500
-        public static readonly Color Header         = Color.FromArgb(21, 24, 38);
-        public static readonly Color ContentBg      = Color.FromArgb(248, 249, 255);
-        public static readonly Color CardBg         = Color.White;
-        public static readonly Color CardBorder     = Color.FromArgb(230, 232, 245);
+        // ─── Core dark palette (Slate-inspired) ────────────────────────────────
+        public static readonly Color Sidebar        = Color.FromArgb(15, 23, 42);   // Slate-900
+        public static readonly Color SidebarHover   = Color.FromArgb(30, 41, 59);   // Slate-800
+        public static readonly Color SidebarActive  = Color.FromArgb(99, 102, 241); // Indigo-500
+        public static readonly Color Header         = Color.FromArgb(15, 23, 42);   // Slate-900
+        public static readonly Color ContentBg      = Color.FromArgb(2, 6, 23);     // Slate-950
+        public static readonly Color CardBg         = Color.FromArgb(30, 41, 59);   // Slate-800
+        public static readonly Color CardBorder     = Color.FromArgb(51, 65, 85);   // Slate-700
+        public static readonly Color Divider        = Color.FromArgb(51, 65, 85);   // Slate-700
+        
+        // Inputs & outputs
+        public static readonly Color InputBg        = Color.FromArgb(15, 23, 42);   // Slate-900
+        public static readonly Color OutputBg       = Color.FromArgb(2, 6, 23);     // Slate-950
+        public static readonly Color OutputText     = Color.FromArgb(129, 140, 248); // Indigo-400
+        public static readonly Color InputWrapBg    = Color.FromArgb(15, 23, 42);   // Slate-900
+
+        // Buttons & Chips
+        public static readonly Color ButtonMutedBg  = Color.FromArgb(51, 65, 85);   // Slate-700
+        public static readonly Color ButtonMutedFg  = Color.FromArgb(241, 245, 249);// Slate-100
+        public static readonly Color ChipBg         = Color.FromArgb(30, 41, 59);   // Slate-800
+        public static readonly Color ChipHoverBg    = Color.FromArgb(51, 65, 85);   // Slate-700
+
+        // Spec alerts
+        public static readonly Color AlertSuccessBg = Color.FromArgb(6, 78, 59);    // Emerald-900 
+        public static readonly Color AlertDangerBg  = Color.FromArgb(127, 29, 29);  // Red-900
 
         // ─── Accent / brand ────────────────────────────────────────────────────
-        public static readonly Color Accent         = Color.FromArgb(99, 102, 241);   // Indigo
-        public static readonly Color AccentHover    = Color.FromArgb(79,  82, 221);
-        public static readonly Color AccentSuccess  = Color.FromArgb(34, 197,  94);   // Green
-        public static readonly Color AccentWarning  = Color.FromArgb(251, 191,  36);  // Amber
-        public static readonly Color AccentDanger   = Color.FromArgb(239,  68,  68);  // Red
-        public static readonly Color AccentInfo     = Color.FromArgb( 56, 189, 248);  // Sky
+        public static readonly Color Accent         = Color.FromArgb(99, 102, 241); // Indigo-500
+        public static readonly Color AccentHover    = Color.FromArgb(79, 70, 229);  // Indigo-600
+        public static readonly Color AccentSuccess  = Color.FromArgb(16, 185, 129); // Emerald-500
+        public static readonly Color AccentWarning  = Color.FromArgb(245, 158, 11); // Amber-500
+        public static readonly Color AccentDanger   = Color.FromArgb(239, 68, 68);  // Red-500
+        public static readonly Color AccentInfo     = Color.FromArgb(14, 165, 233); // Sky-500
 
         // ─── Text ──────────────────────────────────────────────────────────────
-        public static readonly Color TextPrimary    = Color.FromArgb( 15,  17,  26);
-        public static readonly Color TextSecondary  = Color.FromArgb(100, 106, 140);
-        public static readonly Color TextMuted      = Color.FromArgb(170, 175, 200);
+        public static readonly Color TextPrimary    = Color.FromArgb(241, 245, 249);// Slate-100
+        public static readonly Color TextSecondary  = Color.FromArgb(160, 174, 192);// Slate-400
+        public static readonly Color TextMuted      = Color.FromArgb(100, 116, 139);// Slate-500
         public static readonly Color TextOnDark     = Color.White;
         public static readonly Color TextOnAccent   = Color.White;
 
@@ -47,7 +64,7 @@ namespace CryptoEdu.UI.Theme
         public static readonly Font  FontBadge      = new Font("Segoe UI",  7, FontStyle.Bold);
 
         // ─── Sizes ─────────────────────────────────────────────────────────────
-        public const int SidebarWidth    = 220;
+        public const int SidebarWidth    = 240;
         public const int HeaderHeight    = 58;
         public const int CornerRadius    = 10;
         public const int CardPadding     = 20;
