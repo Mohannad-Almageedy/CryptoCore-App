@@ -1,174 +1,186 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using CryptoEdu.Core.Modern;
 using CryptoEdu.Services;
-using MaterialSkin;
-using MaterialSkin.Controls;
+using CryptoEdu.UI.Controls;
+using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
-    public partial class ModernCipherPanel : UserControl
+    public class ModernCipherPanel : UserControl
     {
-        private readonly AesCipher _aesCipher = new AesCipher();
-        private readonly DesCipher _desCipher = new DesCipher();
-        private readonly RsaCipher _rsaCipher = new RsaCipher();
+        private readonly Core.Modern.AesCipher _aes = new();
+        private readonly Core.Modern.DesCipher _des = new();
+        private readonly Core.Modern.RsaCipher _rsa = new();
 
         public ModernCipherPanel()
         {
-            InitializeComponent();
-            SetupUI();
+            Dock = DockStyle.Fill;
+            BackColor = AppTheme.ContentBg;
+            BuildUI();
         }
 
-        private void InitializeComponent()
+        private void BuildUI()
         {
-            this.Dock = DockStyle.Fill;
+            var tabs = MakeTabBar(out var content);
+
+            // Tab pages
+            var pgAes  = BuildSymmetric("AES-256 · CBC Mode", _aes,
+                "Military-grade symmetric encryption.", "AES");
+            var pgDes  = BuildSymmetric("Triple DES · CBC Mode", _des,
+                "Legacy 3-key DES cipher (educational).", "3DES");
+            var pgRsa  = BuildRsa();
+
+            tabs.Controls[0].Tag = pgAes;
+            tabs.Controls[1].Tag = pgDes;
+            tabs.Controls[2].Tag = pgRsa;
+
+            // Wire first tab
+            content.Controls.Add(pgAes);
+
+            Controls.Add(content);
+            Controls.Add(tabs);
         }
 
-        private void SetupUI()
+        private Panel MakeTabBar(out Panel content)
         {
-            var tabControl = new MaterialTabControl
+            content = new Panel { Dock = DockStyle.Fill, BackColor = AppTheme.ContentBg };
+            var localContent = content; // capture for lambda
+
+            var bar = new Panel
             {
-                Dock = DockStyle.Fill,
-                Depth = 0,
-                MouseState = MouseState.HOVER
+                Dock = DockStyle.Top, Height = 48, BackColor = AppTheme.ContentBg
             };
 
-            tabControl.TabPages.Add(CreateSymmetricTab("AES-256", _aesCipher));
-            tabControl.TabPages.Add(CreateSymmetricTab("Triple DES", _desCipher));
-            tabControl.TabPages.Add(CreateRsaTab());
+            string[] labels = { "AES-256", "Triple DES", "RSA" };
+            Button? active = null;
 
-            var tabSelector = new MaterialTabSelector
+            for (int i = 0; i < labels.Length; i++)
             {
-                BaseTabControl = tabControl,
-                Dock = DockStyle.Top,
-                Height = 48
-            };
+                var btn = new Button
+                {
+                    Text      = labels[i],
+                    FlatStyle = FlatStyle.Flat,
+                    Font      = AppTheme.FontBodyBold,
+                    Height    = 34,
+                    Width     = 120,
+                    Left      = i * 128,
+                    Top       = 7,
+                    BackColor = Color.FromArgb(238, 239, 255),
+                    ForeColor = AppTheme.TextSecondary,
+                    Cursor    = Cursors.Hand
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                bar.Controls.Add(btn);
 
-            this.Controls.Add(tabControl);
-            this.Controls.Add(tabSelector);
+                var capturedBtn = btn;
+                btn.Click += (s, e) =>
+                {
+                    foreach (Button b in bar.Controls) { b.BackColor = Color.FromArgb(238, 239, 255); b.ForeColor = AppTheme.TextSecondary; }
+                    capturedBtn.BackColor = AppTheme.Accent;
+                    capturedBtn.ForeColor = Color.White;
+                    active = capturedBtn;
+
+                    localContent.Controls.Clear();
+                    if (capturedBtn.Tag is Control ct) { ct.Dock = DockStyle.Fill; localContent.Controls.Add(ct); }
+                };
+
+                if (i == 0) { btn.BackColor = AppTheme.Accent; btn.ForeColor = Color.White; active = btn; }
+            }
+
+            return bar;
         }
 
-        private TabPage CreateSymmetricTab(string title, Core.Interfaces.ICipher cipher)
+        private Panel BuildSymmetric(string title, Core.Interfaces.ICipher cipher, string desc, string histLabel)
         {
-            var page = new TabPage(title) { BackColor = Color.White };
+            var card = new RoundedPanel { Dock = DockStyle.Fill };
+            var p = card;
 
-            var lblTitle = new MaterialLabel { Text = $"{cipher.Name} Encryption", FontType = MaterialSkinManager.fontType.H5, Location = new Point(20, 20), AutoSize = true };
-            
-            var lblInput = new MaterialLabel { Text = "Plaintext / Ciphertext:", Location = new Point(20, 70), AutoSize = true };
-            var txtInput = new RichTextBox { Location = new Point(20, 100), Size = new Size(500, 150), Font = new Font("Segoe UI", 10) };
+            var lbl = new Label { Text = title, Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
+            var sub = new Label { Text = desc, Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 38) };
 
-            var lblKey = new MaterialLabel { Text = "Secret Key / Password:", Location = new Point(540, 70), AutoSize = true };
-            var txtKey = new TextBox { Location = new Point(540, 100), Size = new Size(300, 30), Font = new Font("Segoe UI", 10) };
-            
-            var btnGenKey = new MaterialButton { Text = "Generate Secure Key", Type = MaterialButton.MaterialButtonType.Outlined, Location = new Point(540, 140) };
+            // Input
+            var lblIn = new Label { Text = "Plaintext / Ciphertext", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 72) };
+            var txtIn = new RichTextBox { Bounds = new Rectangle(16, 96, 580, 120), Font = AppTheme.FontBody, BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(248, 249, 255) };
 
-            var btnEncrypt = new MaterialButton { Text = "Encrypt", Location = new Point(20, 270) };
-            var btnDecrypt = new MaterialButton { Text = "Decrypt", Location = new Point(120, 270) };
-            
-            var lblOutput = new MaterialLabel { Text = "Output Base64 / Plaintext:", Location = new Point(20, 320), AutoSize = true };
-            var txtOutput = new RichTextBox { Location = new Point(20, 350), Size = new Size(820, 150), Font = new Font("Consolas", 10), ReadOnly = true };
+            // Key
+            var lblK = new Label { Text = "Password / Secret Key", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 230) };
+            var txtK = new TextBox { Bounds = new Rectangle(16, 254, 400, 32), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle, BackColor = Color.FromArgb(248, 249, 255) };
+            var btnGenK = MakePill("⟳ Generate", AppTheme.AccentInfo, new Point(424, 254));
+            btnGenK.Click += (s, e) => txtK.Text = KeyGeneratorService.GenerateSecurePassword(16);
 
-            var btnCopy = new MaterialButton { Text = "Copy Output", Type = MaterialButton.MaterialButtonType.Text, Location = new Point(20, 520) };
+            // Buttons
+            var btnEnc = MakePill("▶  Encrypt", AppTheme.Accent, new Point(16, 304));
+            var btnDec = MakePill("◀  Decrypt", AppTheme.AccentSuccess, new Point(btnEnc.Right + 8, 304));
+            var lblStat = new Label { Text = "Ready", Font = AppTheme.FontSmall, ForeColor = AppTheme.TextMuted, AutoSize = true, Location = new Point(btnDec.Right + 14, 316) };
 
-            btnGenKey.Click += (s, e) => txtKey.Text = KeyGeneratorService.GenerateSecurePassword(16);
-            
-            btnEncrypt.Click += (s, e) => {
-                try {
-                    txtOutput.Text = cipher.Encrypt(txtInput.Text, txtKey.Text);
-                    HistoryService.LogOperation("Encrypt", cipher.Name, "Successfully encrypted data.");
-                } catch (Exception ex) {
-                    MessageBox.Show(ex.Message, "Encryption Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            // Output
+            var lblOut = new Label { Text = "Output (Base64 / Plaintext)", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 354) };
+            var txtOut = new RichTextBox
+            {
+                Bounds = new Rectangle(16, 378, 730, 120),
+                Font = new Font("Cascadia Code", 9), BorderStyle = BorderStyle.None,
+                BackColor = Color.FromArgb(240, 242, 255), ForeColor = Color.FromArgb(50, 50, 160), ReadOnly = true
+            };
+            var btnCopy = MakePill("⎘ Copy", Color.FromArgb(238, 239, 255), new Point(16, 510), AppTheme.Accent);
+            btnCopy.Click += (s, e) => ClipboardService.CopyToClipboard(txtOut.Text);
+
+            btnEnc.Click += (s, e) => {
+                try { txtOut.Text = cipher.Encrypt(txtIn.Text, txtK.Text); lblStat.Text = "Encrypted ✓"; lblStat.ForeColor = AppTheme.AccentSuccess; HistoryService.LogOperation("Encrypt", histLabel, "OK"); }
+                catch (Exception ex) { lblStat.Text = ex.Message; lblStat.ForeColor = AppTheme.AccentDanger; }
+            };
+            btnDec.Click += (s, e) => {
+                try { txtOut.Text = cipher.Decrypt(txtIn.Text, txtK.Text); lblStat.Text = "Decrypted ✓"; lblStat.ForeColor = AppTheme.AccentSuccess; HistoryService.LogOperation("Decrypt", histLabel, "OK"); }
+                catch (Exception ex) { lblStat.Text = ex.Message; lblStat.ForeColor = AppTheme.AccentDanger; }
             };
 
-            btnDecrypt.Click += (s, e) => {
-                try {
-                    txtOutput.Text = cipher.Decrypt(txtInput.Text, txtKey.Text);
-                    HistoryService.LogOperation("Decrypt", cipher.Name, "Successfully decrypted data.");
-                } catch (Exception ex) {
-                    MessageBox.Show(ex.Message, "Decryption Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            };
-
-            btnCopy.Click += (s, e) => ClipboardService.CopyToClipboard(txtOutput.Text);
-
-            page.Controls.Add(lblTitle);
-            page.Controls.Add(lblInput);
-            page.Controls.Add(txtInput);
-            page.Controls.Add(lblKey);
-            page.Controls.Add(txtKey);
-            page.Controls.Add(btnGenKey);
-            page.Controls.Add(btnEncrypt);
-            page.Controls.Add(btnDecrypt);
-            page.Controls.Add(lblOutput);
-            page.Controls.Add(txtOutput);
-            page.Controls.Add(btnCopy);
-
-            return page;
+            p.Controls.AddRange(new Control[] { lbl, sub, lblIn, txtIn, lblK, txtK, btnGenK, btnEnc, btnDec, lblStat, lblOut, txtOut, btnCopy });
+            return card;
         }
 
-        private TabPage CreateRsaTab()
+        private Panel BuildRsa()
         {
-            var page = new TabPage("RSA") { BackColor = Color.White };
+            var card = new RoundedPanel { Dock = DockStyle.Fill };
 
-            var lblTitle = new MaterialLabel { Text = "RSA Asymmetric Cryptography", FontType = MaterialSkinManager.fontType.H5, Location = new Point(20, 20), AutoSize = true };
-            
-            var btnGenerate = new MaterialButton { Text = "Generate New 2048-bit RSA Key Pair", Location = new Point(20, 60) };
-            
-            var lblPub = new MaterialLabel { Text = "Public Key (XML):", Location = new Point(20, 110), AutoSize = true };
-            var txtPub = new RichTextBox { Location = new Point(20, 140), Size = new Size(400, 100), Font = new Font("Consolas", 8) };
+            var lbl = new Label { Text = "RSA Asymmetric Encryption", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
+            var sub = new Label { Text = "2048-bit OAEP · Public key encrypts · Private key decrypts", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 38) };
 
-            var lblPriv = new MaterialLabel { Text = "Private Key (XML):", Location = new Point(440, 110), AutoSize = true };
-            var txtPriv = new RichTextBox { Location = new Point(440, 140), Size = new Size(400, 100), Font = new Font("Consolas", 8) };
+            var btnGen = MakePill("⟳  Generate New 2048-bit Key Pair", AppTheme.Accent, new Point(16, 70));
 
-            var lblInput = new MaterialLabel { Text = "Input Text:", Location = new Point(20, 260), AutoSize = true };
-            var txtInput = new RichTextBox { Location = new Point(20, 290), Size = new Size(820, 100), Font = new Font("Segoe UI", 10) };
+            var lblPub  = new Label { Text = "Public Key (XML — share this)", Font = AppTheme.FontH3, ForeColor = Color.FromArgb(34, 150, 94), AutoSize = true, Location = new Point(16, 118) };
+            var txtPub  = new RichTextBox { Bounds = new Rectangle(16, 142, 370, 90), Font = new Font("Cascadia Code", 7), BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(240, 255, 248), ReadOnly = true };
 
-            var btnEncrypt = new MaterialButton { Text = "Encrypt (Needs Public Key)", Location = new Point(20, 410) };
-            var btnDecrypt = new MaterialButton { Text = "Decrypt (Needs Private Key)", Location = new Point(270, 410) };
+            var lblPriv = new Label { Text = "Private Key (XML — keep secret!)", Font = AppTheme.FontH3, ForeColor = AppTheme.AccentDanger, AutoSize = true, Location = new Point(400, 118) };
+            var txtPriv = new RichTextBox { Bounds = new Rectangle(400, 142, 370, 90), Font = new Font("Cascadia Code", 7), BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(255, 242, 242), ReadOnly = true };
 
-            var lblOutput = new MaterialLabel { Text = "Output Base64 / Plaintext:", Location = new Point(20, 460), AutoSize = true };
-            var txtOutput = new RichTextBox { Location = new Point(20, 490), Size = new Size(820, 100), Font = new Font("Consolas", 10), ReadOnly = true };
+            var lblIn  = new Label { Text = "Input Text", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 248) };
+            var txtIn  = new RichTextBox { Bounds = new Rectangle(16, 272, 755, 80), Font = AppTheme.FontBody, BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(248, 249, 255) };
 
-            btnGenerate.Click += (s, e) => {
-                KeyGeneratorService.GenerateRsaKeyPair(out string pub, out string priv);
-                txtPub.Text = pub;
-                txtPriv.Text = priv;
+            var btnEnc = MakePill("▶  Encrypt (Public Key)", AppTheme.Accent, new Point(16, 366));
+            var btnDec = MakePill("◀  Decrypt (Private Key)", AppTheme.AccentSuccess, new Point(btnEnc.Right + 8, 366));
+
+            var lblOut = new Label { Text = "Output", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 416) };
+            var txtOut = new RichTextBox { Bounds = new Rectangle(16, 440, 755, 80), Font = new Font("Cascadia Code", 9), BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(240, 242, 255), ForeColor = Color.FromArgb(50, 50, 160), ReadOnly = true };
+
+            btnGen.Click += (s, e) => { KeyGeneratorService.GenerateRsaKeyPair(out string pub, out string prv); txtPub.Text = pub; txtPriv.Text = prv; };
+            btnEnc.Click += (s, e) => { try { txtOut.Text = _rsa.Encrypt(txtIn.Text, txtPub.Text); } catch (Exception ex) { MessageBox.Show(ex.Message); } };
+            btnDec.Click += (s, e) => { try { txtOut.Text = _rsa.Decrypt(txtIn.Text, txtPriv.Text); } catch (Exception ex) { MessageBox.Show(ex.Message); } };
+
+            card.Controls.AddRange(new Control[] { lbl, sub, btnGen, lblPub, txtPub, lblPriv, txtPriv, lblIn, txtIn, btnEnc, btnDec, lblOut, txtOut });
+            return card;
+        }
+
+        private static Button MakePill(string text, Color bg, Point loc, Color? fg = null)
+        {
+            var b = new Button
+            {
+                Text = text, Location = loc, AutoSize = true, FlatStyle = FlatStyle.Flat,
+                BackColor = bg, ForeColor = fg ?? Color.White, Font = AppTheme.FontBodyBold,
+                Cursor = Cursors.Hand, Height = 34, Padding = new Padding(10, 0, 10, 0)
             };
-
-            btnEncrypt.Click += (s, e) => {
-                try {
-                    txtOutput.Text = _rsaCipher.Encrypt(txtInput.Text, txtPub.Text);
-                    HistoryService.LogOperation("Encrypt", "RSA", "Encrypted using Public Key.");
-                } catch (Exception ex) {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            };
-
-            btnDecrypt.Click += (s, e) => {
-                try {
-                    txtOutput.Text = _rsaCipher.Decrypt(txtInput.Text, txtPriv.Text);
-                    HistoryService.LogOperation("Decrypt", "RSA", "Decrypted using Private Key.");
-                } catch (Exception ex) {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            };
-
-            page.Controls.Add(lblTitle);
-            page.Controls.Add(btnGenerate);
-            page.Controls.Add(lblPub);
-            page.Controls.Add(txtPub);
-            page.Controls.Add(lblPriv);
-            page.Controls.Add(txtPriv);
-            page.Controls.Add(lblInput);
-            page.Controls.Add(txtInput);
-            page.Controls.Add(btnEncrypt);
-            page.Controls.Add(btnDecrypt);
-            page.Controls.Add(lblOutput);
-            page.Controls.Add(txtOutput);
-
-            return page;
+            b.FlatAppearance.BorderSize = 0;
+            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.1f);
+            return b;
         }
     }
 }

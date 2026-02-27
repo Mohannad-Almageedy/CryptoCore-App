@@ -2,140 +2,101 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using CryptoEdu.Services;
-using MaterialSkin;
-using MaterialSkin.Controls;
+using CryptoEdu.UI.Controls;
+using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
-    public partial class HashingPanel : UserControl
+    public class HashingPanel : UserControl
     {
         public HashingPanel()
         {
-            InitializeComponent();
-            SetupUI();
+            Dock = DockStyle.Fill;
+            BackColor = AppTheme.ContentBg;
+            BuildUI();
         }
 
-        private void InitializeComponent()
+        private void BuildUI()
         {
-            this.Dock = DockStyle.Fill;
-            this.Padding = new Padding(20);
-        }
+            var card = new RoundedPanel { Dock = DockStyle.Fill };
+            var c = card;
 
-        private void SetupUI()
-        {
-            int y = 20;
+            // Header
+            var lbl = new Label { Text = "Cryptographic Hash Functions", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
+            var sub = new Label { Text = "One-way transformation · Cannot be reversed or decrypted", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 40) };
 
-            var lblTitle = new MaterialLabel
-            {
-                Text = "Cryptographic Hash Functions",
-                FontType = MaterialSkinManager.fontType.H5,
-                AutoSize = true,
-                Location = new Point(20, y)
-            };
-            y += 50;
-
-            var lblNote = new Label
-            {
-                Text = "Hashing is a one-way mathematical function. It cannot be reversed/decrypted.",
-                Location = new Point(20, y),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.Gray
-            };
-            y += 40;
-
-            var lblInput = new MaterialLabel { Text = "Input Text:", Location = new Point(20, y), AutoSize = true };
-            y += 30;
-            var txtInput = new RichTextBox
-            {
-                Location = new Point(20, y),
-                Size = new Size(820, 100),
-                Font = new Font("Segoe UI", 10),
-                ScrollBars = RichTextBoxScrollBars.Vertical
-            };
-            y += 120;
+            // Input
+            var lblIn = new Label { Text = "Input Text", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 78) };
+            var txtIn = new RichTextBox { Bounds = new Rectangle(16, 104, 780, 100), Font = AppTheme.FontBody, BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(248, 249, 255) };
 
             // HMAC Key
-            var lblHmacKey = new MaterialLabel { Text = "HMAC Secret Key (only for HMAC):", Location = new Point(20, y), AutoSize = true };
-            y += 30;
-            var txtHmacKey = new TextBox
-            {
-                Location = new Point(20, y),
-                Size = new Size(400, 30),
-                Font = new Font("Segoe UI", 10)
-            };
-            y += 50;
+            var lblHK = new Label { Text = "HMAC Secret Key (only required for HMAC-SHA256)", Font = AppTheme.FontSmall, ForeColor = AppTheme.TextMuted, AutoSize = true, Location = new Point(16, 218) };
+            var txtHK = new TextBox { Bounds = new Rectangle(16, 238, 380, 30), Font = AppTheme.FontBody, BorderStyle = BorderStyle.FixedSingle, BackColor = Color.FromArgb(248, 249, 255) };
 
-            // Buttons Row
-            var btnMD5 = new MaterialButton { Text = "MD5", Location = new Point(20, y) };
-            var btnSHA1 = new MaterialButton { Text = "SHA-1", Location = new Point(90, y) };
-            var btnSHA256 = new MaterialButton { Text = "SHA-256", Location = new Point(170, y) };
-            var btnSHA512 = new MaterialButton { Text = "SHA-512", Location = new Point(270, y) };
-            var btnHMAC = new MaterialButton { Text = "HMAC-SHA256", Location = new Point(380, y) };
-            y += 60;
+            // Algorithm buttons row
+            int bx = 16, by = 284;
+            var btnMD5    = MakePill("MD5",          Color.FromArgb(234, 67, 53),   new Point(bx, by));
+            bx += btnMD5.PreferredSize.Width + 8;
+            var btnSHA1   = MakePill("SHA-1",        Color.FromArgb(250, 144, 30),  new Point(bx, by));
+            bx += btnSHA1.PreferredSize.Width + 8;
+            var btnSHA256 = MakePill("SHA-256",      AppTheme.Accent,               new Point(bx, by));
+            bx += btnSHA256.PreferredSize.Width + 8;
+            var btnSHA512 = MakePill("SHA-512",      Color.FromArgb(30, 136, 229),  new Point(bx, by));
+            bx += btnSHA512.PreferredSize.Width + 8;
+            var btnHMAC   = MakePill("HMAC-SHA256",  Color.FromArgb(0, 150, 136),   new Point(bx, by));
 
-            // Output
-            var lblOutput = new MaterialLabel { Text = "Hash Result (Hex):", Location = new Point(20, y), AutoSize = true };
-            y += 30;
-            var txtOutput = new RichTextBox
-            {
-                Location = new Point(20, y),
-                Size = new Size(820, 80),
-                Font = new Font("Consolas", 11),
-                ReadOnly = true,
-                BackColor = Color.FromArgb(245, 245, 245)
-            };
-            y += 100;
+            // Status
+            var lblStat = new Label { Text = "", Font = AppTheme.FontSmall, ForeColor = AppTheme.AccentSuccess, AutoSize = true, Location = new Point(16, 332) };
 
-            var btnCopy = new MaterialButton
+            // Output card
+            var lblOut = new Label { Text = "Hash Result (Hexadecimal)", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 350) };
+            var txtOut = new TextBox
             {
-                Text = "Copy Hash",
-                Type = MaterialButton.MaterialButtonType.Text,
-                Location = new Point(20, y)
+                Bounds = new Rectangle(16, 376, 780, 42), Font = new Font("Cascadia Code", 11, FontStyle.Bold),
+                BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(240, 242, 255),
+                ForeColor = AppTheme.Accent, ReadOnly = true
             };
+            var btnCopy = MakePill("⎘  Copy", Color.FromArgb(238, 239, 255), new Point(16, 430), AppTheme.Accent);
+            btnCopy.Click += (s, e) => ClipboardService.CopyToClipboard(txtOut.Text);
 
             // Handlers
-            btnMD5.Click += (s, e) => TryHash(() => HashingService.ComputeMD5(txtInput.Text), txtOutput, "MD5");
-            btnSHA1.Click += (s, e) => TryHash(() => HashingService.ComputeSHA1(txtInput.Text), txtOutput, "SHA-1");
-            btnSHA256.Click += (s, e) => TryHash(() => HashingService.ComputeSHA256(txtInput.Text), txtOutput, "SHA-256");
-            btnSHA512.Click += (s, e) => TryHash(() => HashingService.ComputeSHA512(txtInput.Text), txtOutput, "SHA-512");
-            btnHMAC.Click += (s, e) => {
-                try {
-                    txtOutput.Text = HashingService.ComputeHMACSHA256(txtInput.Text, txtHmacKey.Text);
-                    HistoryService.LogOperation("Hash", "HMAC-SHA256", "Computed HMAC-SHA256 hash.");
-                } catch (Exception ex) {
-                    MessageBox.Show(ex.Message, "HMAC Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            };
-            btnCopy.Click += (s, e) => ClipboardService.CopyToClipboard(txtOutput.Text);
+            btnMD5.Click    += (s, e) => Run(() => HashingService.ComputeMD5(txtIn.Text),           txtOut, lblStat, "MD5");
+            btnSHA1.Click   += (s, e) => Run(() => HashingService.ComputeSHA1(txtIn.Text),          txtOut, lblStat, "SHA-1");
+            btnSHA256.Click += (s, e) => Run(() => HashingService.ComputeSHA256(txtIn.Text),        txtOut, lblStat, "SHA-256");
+            btnSHA512.Click += (s, e) => Run(() => HashingService.ComputeSHA512(txtIn.Text),        txtOut, lblStat, "SHA-512");
+            btnHMAC.Click   += (s, e) => Run(() => HashingService.ComputeHMACSHA256(txtIn.Text, txtHK.Text), txtOut, lblStat, "HMAC-SHA256");
 
-            this.Controls.Add(lblTitle);
-            this.Controls.Add(lblNote);
-            this.Controls.Add(lblInput);
-            this.Controls.Add(txtInput);
-            this.Controls.Add(lblHmacKey);
-            this.Controls.Add(txtHmacKey);
-            this.Controls.Add(btnMD5);
-            this.Controls.Add(btnSHA1);
-            this.Controls.Add(btnSHA256);
-            this.Controls.Add(btnSHA512);
-            this.Controls.Add(btnHMAC);
-            this.Controls.Add(lblOutput);
-            this.Controls.Add(txtOutput);
-            this.Controls.Add(btnCopy);
+            c.Controls.AddRange(new Control[] { lbl, sub, lblIn, txtIn, lblHK, txtHK, btnMD5, btnSHA1, btnSHA256, btnSHA512, btnHMAC, lblStat, lblOut, txtOut, btnCopy });
+            Controls.Add(card);
         }
 
-        private void TryHash(Func<string> hashFunc, RichTextBox output, string algoName)
+        private static void Run(Func<string> fn, TextBox output, Label status, string algo)
         {
             try
             {
-                output.Text = hashFunc();
-                HistoryService.LogOperation("Hash", algoName, $"Computed {algoName} hash.");
+                output.Text = fn();
+                status.Text = $"{algo} computed ✓";
+                status.ForeColor = AppTheme.AccentSuccess;
+                HistoryService.LogOperation("Hash", algo, "OK");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Hash Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                status.Text = ex.Message;
+                status.ForeColor = AppTheme.AccentDanger;
             }
+        }
+
+        private static Button MakePill(string text, Color bg, Point loc, Color? fg = null)
+        {
+            var b = new Button
+            {
+                Text = text, Location = loc, AutoSize = true, FlatStyle = FlatStyle.Flat,
+                BackColor = bg, ForeColor = fg ?? Color.White, Font = AppTheme.FontBodyBold,
+                Cursor = Cursors.Hand, Height = 34, Padding = new Padding(12, 0, 12, 0)
+            };
+            b.FlatAppearance.BorderSize = 0;
+            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.1f);
+            return b;
         }
     }
 }

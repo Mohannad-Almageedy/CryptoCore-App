@@ -2,126 +2,82 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using CryptoEdu.Services;
-using MaterialSkin;
-using MaterialSkin.Controls;
+using CryptoEdu.UI.Controls;
+using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
-    public partial class KeyGeneratorPanel : UserControl
+    public class KeyGeneratorPanel : UserControl
     {
         public KeyGeneratorPanel()
         {
-            InitializeComponent();
-            SetupUI();
+            Dock = DockStyle.Fill;
+            BackColor = AppTheme.ContentBg;
+            BuildUI();
         }
 
-        private void InitializeComponent()
+        private void BuildUI()
         {
-            this.Dock = DockStyle.Fill;
-            this.Padding = new Padding(20);
+            // ── Password Generator Card ───────────────────────────────
+            var pwCard = new RoundedPanel { Bounds = new Rectangle(0, 0, 780, 240), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+
+            var pwTitle = new Label { Text = "Password Generator", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
+            var pwSub   = new Label { Text = "Cryptographically-secure random passwords", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 40) };
+
+            var lblLen = new Label { Text = "Length:", Font = AppTheme.FontH3, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 78) };
+            var numLen = new NumericUpDown { Minimum = 6, Maximum = 128, Value = 20, Location = new Point(80, 74), Width = 70, Font = AppTheme.FontBody };
+            var chkSp  = new CheckBox { Text = "Include special characters  (!@#$&*)", Location = new Point(160, 76), AutoSize = true, Checked = true, Font = AppTheme.FontBody };
+
+            var btnGen = MakePill("⟳  Generate", AppTheme.Accent, new Point(16, 116));
+
+            var txtPw = new TextBox
+            {
+                Bounds = new Rectangle(16, 162, 640, 38),
+                Font = new Font("Cascadia Code", 14, FontStyle.Bold),
+                BorderStyle = BorderStyle.None,
+                BackColor = Color.FromArgb(248, 249, 255),
+                ReadOnly = true,
+                TextAlign = HorizontalAlignment.Center,
+                ForeColor = AppTheme.Accent
+            };
+            var btnCopyPw = MakePill("⎘ Copy", Color.FromArgb(238, 239, 255), new Point(666, 166), AppTheme.Accent);
+            btnCopyPw.Click += (s, e) => ClipboardService.CopyToClipboard(txtPw.Text);
+            btnGen.Click    += (s, e) => txtPw.Text = KeyGeneratorService.GenerateSecurePassword((int)numLen.Value, chkSp.Checked);
+
+            pwCard.Controls.AddRange(new Control[] { pwTitle, pwSub, lblLen, numLen, chkSp, btnGen, txtPw, btnCopyPw });
+
+            // ── RSA Key Pair Card ─────────────────────────────────────
+            var rsaCard = new RoundedPanel { Bounds = new Rectangle(0, 252, 780, 400), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+
+            var rsaTitle = new Label { Text = "RSA 2048-bit Key Pair", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
+            var rsaSub   = new Label { Text = "Asymmetric key pair generation for RSA encryption/decryption", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 40) };
+
+            var btnGenRsa = MakePill("⟳  Generate New Key Pair", AppTheme.Accent, new Point(16, 74));
+
+            var lblPub = new Label { Text = "Public Key (share this):", Font = AppTheme.FontH3, ForeColor = Color.FromArgb(34, 150, 94), AutoSize = true, Location = new Point(16, 120) };
+            var txtPub = new RichTextBox { Bounds = new Rectangle(16, 144, 370, 90), Font = new Font("Cascadia Code", 7), BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(240, 255, 248), ReadOnly = true };
+
+            var lblPrv = new Label { Text = "Private Key (keep secret!):", Font = AppTheme.FontH3, ForeColor = AppTheme.AccentDanger, AutoSize = true, Location = new Point(400, 120) };
+            var txtPrv = new RichTextBox { Bounds = new Rectangle(400, 144, 370, 90), Font = new Font("Cascadia Code", 7), BorderStyle = BorderStyle.None, BackColor = Color.FromArgb(255, 242, 242), ReadOnly = true };
+
+            var btnCpPub = MakePill("⎘ Copy Public",  Color.FromArgb(238, 255, 248), new Point(16, 248),  Color.FromArgb(34, 150, 94));
+            var btnCpPrv = MakePill("⎘ Copy Private", Color.FromArgb(255, 238, 238), new Point(200, 248), AppTheme.AccentDanger);
+
+            btnGenRsa.Click += (s, e) => { KeyGeneratorService.GenerateRsaKeyPair(out string pub, out string prv); txtPub.Text = pub; txtPrv.Text = prv; HistoryService.LogOperation("KeyGen", "RSA", "2048-bit pair generated."); };
+            btnCpPub.Click  += (s, e) => ClipboardService.CopyToClipboard(txtPub.Text);
+            btnCpPrv.Click  += (s, e) => ClipboardService.CopyToClipboard(txtPrv.Text);
+
+            rsaCard.Controls.AddRange(new Control[] { rsaTitle, rsaSub, btnGenRsa, lblPub, txtPub, lblPrv, txtPrv, btnCpPub, btnCpPrv });
+
+            Controls.AddRange(new Control[] { rsaCard, pwCard });
         }
 
-        private void SetupUI()
+        private static Button MakePill(string text, Color bg, Point loc, Color? fg = null)
         {
-            #region Password Generator Section
-            var lblPassTitle = new MaterialLabel
-            {
-                Text = "Secure Password Generator",
-                FontType = MaterialSkinManager.fontType.H5,
-                AutoSize = true,
-                Location = new Point(20, 20)
-            };
-
-            var lblLen = new MaterialLabel { Text = "Password Length:", Location = new Point(20, 75), AutoSize = true };
-            var numLength = new NumericUpDown
-            {
-                Minimum = 6,
-                Maximum = 128,
-                Value = 20,
-                Location = new Point(160, 70),
-                Width = 70,
-                Font = new Font("Segoe UI", 11)
-            };
-
-            var chkSpecial = new CheckBox
-            {
-                Text = "Include Special Characters (!@#$%...)",
-                Location = new Point(20, 110),
-                AutoSize = true,
-                Checked = true,
-                Font = new Font("Segoe UI", 10)
-            };
-
-            var btnGen = new MaterialButton { Text = "Generate Password", Location = new Point(20, 150) };
-
-            var txtPassword = new TextBox
-            {
-                Location = new Point(20, 200),
-                Size = new Size(600, 40),
-                Font = new Font("Segoe UI", 14),
-                ReadOnly = true
-            };
-            var btnCopyPass = new MaterialButton { Text = "Copy", Type = MaterialButton.MaterialButtonType.Outlined, Location = new Point(640, 200) };
-
-            btnGen.Click += (s, e) =>
-            {
-                txtPassword.Text = KeyGeneratorService.GenerateSecurePassword((int)numLength.Value, chkSpecial.Checked);
-            };
-            btnCopyPass.Click += (s, e) => ClipboardService.CopyToClipboard(txtPassword.Text);
-            #endregion
-
-            #region RSA Key Pair Section
-            var lblRsaTitle = new MaterialLabel
-            {
-                Text = "RSA 2048-bit Key Pair Generator",
-                FontType = MaterialSkinManager.fontType.H5,
-                AutoSize = true,
-                Location = new Point(20, 280)
-            };
-
-            var btnGenRsa = new MaterialButton { Text = "Generate New RSA Key Pair", Location = new Point(20, 325) };
-
-            var lblPub = new MaterialLabel { Text = "Public Key (share this to encrypt):", Location = new Point(20, 375), AutoSize = true };
-            var txtPub = new RichTextBox
-            {
-                Location = new Point(20, 400),
-                Size = new Size(840, 100),
-                Font = new Font("Consolas", 8),
-                ReadOnly = true,
-                ScrollBars = RichTextBoxScrollBars.Vertical,
-                BackColor = Color.FromArgb(245, 250, 255)
-            };
-
-            var lblPriv = new MaterialLabel { Text = "Private Key (keep this secret!):", Location = new Point(20, 510), AutoSize = true, ForeColor = Color.DarkRed };
-            var txtPriv = new RichTextBox
-            {
-                Location = new Point(20, 535),
-                Size = new Size(840, 100),
-                Font = new Font("Consolas", 8),
-                ReadOnly = true,
-                ScrollBars = RichTextBoxScrollBars.Vertical,
-                BackColor = Color.FromArgb(255, 245, 245)
-            };
-
-            var btnCopyPub = new MaterialButton { Text = "Copy Public Key", Type = MaterialButton.MaterialButtonType.Outlined, Location = new Point(20, 640) };
-            var btnCopyPriv = new MaterialButton { Text = "Copy Private Key", Type = MaterialButton.MaterialButtonType.Outlined, Location = new Point(200, 640) };
-
-            btnGenRsa.Click += (s, e) =>
-            {
-                KeyGeneratorService.GenerateRsaKeyPair(out string pub, out string priv);
-                txtPub.Text = pub;
-                txtPriv.Text = priv;
-                HistoryService.LogOperation("KeyGen", "RSA", "Generated new RSA 2048-bit key pair.");
-            };
-
-            btnCopyPub.Click += (s, e) => ClipboardService.CopyToClipboard(txtPub.Text);
-            btnCopyPriv.Click += (s, e) => ClipboardService.CopyToClipboard(txtPriv.Text);
-            #endregion
-
-            this.Controls.AddRange(new Control[] {
-                lblPassTitle, lblLen, numLength, chkSpecial, btnGen, txtPassword, btnCopyPass,
-                lblRsaTitle, btnGenRsa, lblPub, txtPub, lblPriv, txtPriv, btnCopyPub, btnCopyPriv
-            });
+            var b = new Button { Text = text, Location = loc, AutoSize = true, FlatStyle = FlatStyle.Flat, BackColor = bg, ForeColor = fg ?? Color.White, Font = AppTheme.FontBodyBold, Cursor = Cursors.Hand, Height = 34, Padding = new Padding(12, 0, 12, 0) };
+            b.FlatAppearance.BorderSize = 0;
+            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.1f);
+            return b;
         }
     }
 }

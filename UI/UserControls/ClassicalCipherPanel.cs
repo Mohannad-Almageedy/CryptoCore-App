@@ -3,60 +3,102 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CryptoEdu.Core;
-using MaterialSkin;
-using MaterialSkin.Controls;
+using CryptoEdu.UI.Controls;
+using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
-    public partial class ClassicalCipherPanel : UserControl
+    /// <summary>
+    /// Hosts a tab strip of all classical ciphers, each rendered by CipherDetailControl.
+    /// </summary>
+    public class ClassicalCipherPanel : UserControl
     {
         public ClassicalCipherPanel()
         {
-            InitializeComponent();
-            SetupClassicalTabs();
+            Dock = DockStyle.Fill;
+            BackColor = AppTheme.ContentBg;
+            BuildUI();
         }
 
-        private void InitializeComponent()
+        private void BuildUI()
         {
-            this.Dock = DockStyle.Fill;
-        }
+            var ciphers = CipherRegistry.GetClassicalCiphers().ToList();
 
-        private void SetupClassicalTabs()
-        {
-            var tabControl = new MaterialTabControl
+            // ── Cipher chips row ─────────────────────────────────────
+            var chipBar = new Panel
             {
-                Dock = DockStyle.Fill,
-                Depth = 0,
-                MouseState = MouseState.HOVER
+                Dock      = DockStyle.Top,
+                Height    = 48,
+                BackColor = AppTheme.ContentBg
             };
 
-            var classicalCiphers = CipherRegistry.GetClassicalCiphers().ToList();
-
-            foreach (var cipher in classicalCiphers)
+            // ── Content host ─────────────────────────────────────────
+            var content = new Panel
             {
-                var tabPage = new TabPage(cipher.Name)
+                Dock      = DockStyle.Fill,
+                BackColor = AppTheme.ContentBg
+            };
+
+            Button? activeChip = null;
+
+            for (int i = 0; i < ciphers.Count; i++)
+            {
+                var cipher = ciphers[i];
+                var detail = new CipherDetailControl(cipher) { Dock = DockStyle.Fill };
+
+                // chip button
+                var chip = new Button
                 {
-                    BackColor = Color.White
+                    Text      = cipher.Name,
+                    FlatStyle = FlatStyle.Flat,
+                    Font      = AppTheme.FontBodyBold,
+                    Height    = 34,
+                    AutoSize  = true,
+                    Padding   = new Padding(14, 0, 14, 0),
+                    BackColor = Color.FromArgb(238, 239, 255),
+                    ForeColor = AppTheme.TextSecondary,
+                    Cursor    = Cursors.Hand,
+                    Tag       = detail
                 };
-                
-                var detailControl = new CipherDetailControl(cipher)
+                chip.FlatAppearance.BorderSize = 0;
+                chip.Location = new Point(i * (chip.PreferredSize.Width + 6), 7);
+
+                chip.Click += (s, e) =>
                 {
-                    Dock = DockStyle.Fill
+                    // Reset previous
+                    if (activeChip != null)
+                    {
+                        activeChip.BackColor = Color.FromArgb(238, 239, 255);
+                        activeChip.ForeColor = AppTheme.TextSecondary;
+                    }
+
+                    chip.BackColor = AppTheme.Accent;
+                    chip.ForeColor = Color.White;
+                    activeChip = chip;
+
+                    content.Controls.Clear();
+                    if (chip.Tag is Control c)
+                    {
+                        c.Dock = DockStyle.Fill;
+                        content.Controls.Add(c);
+                    }
                 };
 
-                tabPage.Controls.Add(detailControl);
-                tabControl.TabPages.Add(tabPage);
+                chipBar.Controls.Add(chip);
+
+                // Auto-select first
+                if (i == 0)
+                {
+                    chip.BackColor = AppTheme.Accent;
+                    chip.ForeColor = Color.White;
+                    activeChip = chip;
+                    detail.Dock = DockStyle.Fill;
+                    content.Controls.Add(detail);
+                }
             }
 
-            var tabSelector = new MaterialTabSelector
-            {
-                BaseTabControl = tabControl,
-                Dock = DockStyle.Top,
-                Height = 48
-            };
-
-            this.Controls.Add(tabControl);
-            this.Controls.Add(tabSelector);
+            Controls.Add(content);
+            Controls.Add(chipBar);
         }
     }
 }

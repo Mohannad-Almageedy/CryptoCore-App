@@ -2,93 +2,105 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using CryptoEdu.Services;
-using MaterialSkin;
-using MaterialSkin.Controls;
+using CryptoEdu.UI.Controls;
+using CryptoEdu.UI.Theme;
 
 namespace CryptoEdu.UI.UserControls
 {
-    public partial class HistoryPanel : UserControl
+    public class HistoryPanel : UserControl
     {
-        private DataGridView? _grid;
+        private DataGridView _grid = null!;
 
         public HistoryPanel()
         {
-            InitializeComponent();
-            SetupUI();
+            Dock = DockStyle.Fill;
+            BackColor = AppTheme.ContentBg;
+            BuildUI();
         }
 
-        private void InitializeComponent()
+        private void BuildUI()
         {
-            this.Dock = DockStyle.Fill;
-            this.Padding = new Padding(20);
-        }
+            var card = new RoundedPanel { Dock = DockStyle.Fill };
 
-        private void SetupUI()
-        {
-            var lblTitle = new MaterialLabel
-            {
-                Text = "Operation History",
-                FontType = MaterialSkinManager.fontType.H5,
-                AutoSize = true,
-                Location = new Point(20, 20)
-            };
+            // Header row
+            var lbl = new Label { Text = "Operation History", Font = AppTheme.FontH2, ForeColor = AppTheme.TextPrimary, AutoSize = true, Location = new Point(16, 12) };
+            var sub = new Label { Text = "Session log of all cryptographic operations performed", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Location = new Point(16, 40) };
 
-            var btnRefresh = new MaterialButton { Text = "Refresh", Location = new Point(700, 15) };
-            var btnClear = new MaterialButton { Text = "Clear History", Type = MaterialButton.MaterialButtonType.Outlined, Location = new Point(800, 15) };
+            var btnRefresh = MakePill("↻  Refresh", Color.FromArgb(238, 239, 255), new Point(580, 12), AppTheme.Accent);
+            var btnClear   = MakePill("✕  Clear",   Color.FromArgb(255, 238, 238), new Point(700, 12), AppTheme.AccentDanger);
 
+            // Grid
             _grid = new DataGridView
             {
-                Location = new Point(20, 70),
-                Size = new Size(900, 500),
+                Bounds          = new Rectangle(16, 70, card.Width - 32, card.Height - 90),
+                Anchor          = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ReadOnly = true,
-                AllowUserToAddRows = false,
+                ReadOnly        = true,
+                AllowUserToAddRows    = false,
                 AllowUserToDeleteRows = false,
                 BackgroundColor = Color.White,
-                BorderStyle = BorderStyle.None,
+                BorderStyle     = BorderStyle.None,
                 RowHeadersVisible = false,
-                ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-                {
-                    BackColor = Color.FromArgb(103, 58, 183),
-                    ForeColor = Color.White,
-                    Font = new Font("Segoe UI", 10, FontStyle.Bold)
-                },
-                Font = new Font("Segoe UI", 10)
+                SelectionMode   = DataGridViewSelectionMode.FullRowSelect,
+                AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(248, 249, 255) },
+                Font = AppTheme.FontBody,
+                GridColor = Color.FromArgb(230, 232, 245)
             };
+
+            _grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+            {
+                BackColor = AppTheme.Accent,
+                ForeColor = Color.White,
+                Font      = AppTheme.FontBodyBold,
+                Padding   = new Padding(6, 0, 6, 0)
+            };
+            _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
+            _grid.ColumnHeadersHeight = 38;
 
             _grid.Columns.Add("Timestamp", "Timestamp");
             _grid.Columns.Add("Operation", "Operation");
             _grid.Columns.Add("Algorithm", "Algorithm");
-            _grid.Columns.Add("Description", "Description");
+            _grid.Columns.Add("Details",   "Details");
 
-            btnRefresh.Click += (s, e) => RefreshHistory();
-            btnClear.Click += (s, e) =>
+            // Tag each row with a colour indicator in the Operation cell
+            _grid.CellFormatting += (s, e) =>
             {
-                HistoryService.ClearHistory();
-                RefreshHistory();
+                if (e.ColumnIndex == 1 && e.Value != null)
+                {
+                    e.CellStyle.ForeColor = e.Value.ToString() switch
+                    {
+                        "Encrypt" => AppTheme.Accent,
+                        "Decrypt" => AppTheme.AccentSuccess,
+                        "Hash"    => Color.FromArgb(250, 144, 30),
+                        "KeyGen"  => AppTheme.AccentInfo,
+                        _         => AppTheme.TextPrimary
+                    };
+                    e.CellStyle.Font = AppTheme.FontBodyBold;
+                }
             };
 
-            this.Controls.Add(lblTitle);
-            this.Controls.Add(btnRefresh);
-            this.Controls.Add(btnClear);
-            this.Controls.Add(_grid);
+            btnRefresh.Click += (s, e) => Refresh();
+            btnClear.Click   += (s, e) => { HistoryService.ClearHistory(); Refresh(); };
 
-            RefreshHistory();
+            card.Controls.AddRange(new Control[] { lbl, sub, btnRefresh, btnClear, _grid });
+            Controls.Add(card);
+
+            Refresh();
         }
 
-        public void RefreshHistory()
+        public new void Refresh()
         {
-            if (_grid == null) return;
             _grid.Rows.Clear();
-            foreach (var entry in HistoryService.GetHistory())
-            {
-                _grid.Rows.Add(
-                    entry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss"),
-                    entry.OperationType,
-                    entry.Title,
-                    entry.Description
-                );
-            }
+            foreach (var e in HistoryService.GetHistory())
+                _grid.Rows.Add(e.Timestamp.ToString("HH:mm:ss"), e.OperationType, e.Title, e.Description);
+        }
+
+        private static Button MakePill(string text, Color bg, Point loc, Color? fg = null)
+        {
+            var b = new Button { Text = text, Location = loc, AutoSize = true, FlatStyle = FlatStyle.Flat, BackColor = bg, ForeColor = fg ?? Color.White, Font = AppTheme.FontBodyBold, Cursor = Cursors.Hand, Height = 34, Padding = new Padding(12, 0, 12, 0) };
+            b.FlatAppearance.BorderSize = 0;
+            b.FlatAppearance.MouseOverBackColor = ControlPaint.Light(bg, 0.1f);
+            return b;
         }
     }
 }
