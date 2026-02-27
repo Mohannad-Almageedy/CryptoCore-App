@@ -38,15 +38,15 @@ namespace CryptoEdu.UI.UserControls
             // Banner for rule
             var ruleBanner = new Panel
             {
-                Dock      = DockStyle.Fill, Height = 48,
+                Dock      = DockStyle.Fill, AutoSize = true,
                 BackColor = AppTheme.InputWrapBg, Margin = new Padding(0, 0, 0, 10),
-                Padding   = new Padding(14, 0, 14, 0)
+                Padding   = new Padding(14, 10, 14, 10)
             };
             var lblRule = new Label
             {
                 Text      = $"📖 Rule: {_cipher.GetMathematicalRule()}",
                 Font      = AppTheme.FontBodyBold, ForeColor = AppTheme.Accent,
-                Dock      = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, BackColor = Color.Transparent
+                Dock      = DockStyle.Top, AutoSize = true, BackColor = Color.Transparent
             };
             ruleBanner.Controls.Add(lblRule);
 

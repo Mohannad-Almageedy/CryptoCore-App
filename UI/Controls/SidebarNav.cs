@@ -20,7 +20,7 @@ namespace CryptoEdu.UI.Controls
     /// Dark sidebar navigation panel.  
     /// Handles active-item highlighting, hover animation, and section headers.
     /// </summary>
-    public class SidebarNav : Panel
+    public class SidebarNav : FlowLayoutPanel
     {
         private readonly List<(Panel item, NavItem nav)> _items = new();
         private Panel? _activeItem;
@@ -34,6 +34,8 @@ namespace CryptoEdu.UI.Controls
             Width          = AppTheme.SidebarWidth;
             Dock           = DockStyle.Left;
             Padding        = new Padding(0);
+            FlowDirection  = FlowDirection.TopDown;
+            WrapContents   = false;
         }
 
         /// <summary>Add a section header (non-clickable label).</summary>
@@ -47,6 +49,7 @@ namespace CryptoEdu.UI.Controls
                 AutoSize  = false,
                 Width     = AppTheme.SidebarWidth,
                 Height    = 32,
+                Margin    = Padding.Empty,
                 Padding   = new Padding(16, 12, 0, 0),
                 BackColor = Color.Transparent
             };
@@ -60,6 +63,7 @@ namespace CryptoEdu.UI.Controls
             {
                 Width      = AppTheme.SidebarWidth,
                 Height     = AppTheme.SidebarItemH,
+                Margin     = Padding.Empty,
                 BackColor  = Color.Transparent,
                 Cursor     = Cursors.Hand,
                 Tag        = nav

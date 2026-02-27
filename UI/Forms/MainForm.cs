@@ -52,6 +52,7 @@ namespace CryptoEdu.UI.Forms
             {
                 Height    = 68,
                 Width     = AppTheme.SidebarWidth,
+                Margin    = Padding.Empty,
                 BackColor = Color.Transparent
             };
             var logoIcon = new Label
@@ -109,6 +110,7 @@ namespace CryptoEdu.UI.Forms
                 AutoSize  = false,
                 Width     = AppTheme.SidebarWidth,
                 Height    = 40,
+                Margin    = new Padding(0, 16, 0, 0),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent,
                 Padding   = new Padding(0, 5, 0, 0)
